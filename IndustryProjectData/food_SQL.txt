@@ -1,0 +1,31 @@
+USE foodDB;
+CREATE TABLE foods (
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+Group VARCHAR(20),
+Name VARCHAR(60),
+Weight FLOAT(24),
+Energy FLOAT(24),
+Protein FLOAT(24),
+FatTotal FLOAT(24),
+FatSat FLOAT(24),
+Fibre FLOAT(24)
+Carb FLOAT(24),
+Cholesterol FLOAT(24),
+Sodium FLOAT(24));
+
+USE FoodDB;
+
+-- create admin and users
+-- ID: 1, Username: admin1, Password: admin123
+INSERT INTO Foods (Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('Chinese','Bak Chang', 132, 276, 8, 10, 3.8, 3.3, 39, 73, 486);
+INSERT INTO Foods (Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('Chinese','Dim Sum-Har Gao', 18, 27, 1, 1, 0.3, 0.4, 4, 5, 74);
+INSERT INTO Foods (Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('Chinese','Dim Sum-Siew Mai', 16, 29, 1, 1, 0.4, 0.3, 3, 4, 99);
+INSERT INTO Foods (Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('Chinese','Dim Sum-Spring Roll', 22, 70, 1, 4, 1.7, 0.7, 7, 3, 141);
+INSERT INTO Foods (Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('Chinese','Dim Sum-You Tiao', 18, 61, 1, 4, 1.5, 0.4, 6, 6, 35);
+
+select * from Foods;
