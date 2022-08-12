@@ -1,0 +1,195 @@
+{
+	"info": {
+		"_postman_id": "2b06da1b-c1f9-489c-a705-9b10406ea575",
+		"name": "Test Food API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21174577"
+	},
+	"item": [
+		{
+			"name": "Home",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all foods",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/foods",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"foods"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a food",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/foods/CH0001?key={{urlKey}}",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"foods",
+						"CH0001"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "{{urlKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add a food",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \"Category\":\"Chinese\", \r\n   \"Name\": \"Ban Mian\",\r\n   \"Weight\" : 528, \r\n   \"Energy\" : 475,\r\n   \"Protein\":  22, \r\n   \"FatTotal\": 22, \r\n   \"FatSat\": 8.4,\r\n   \"Fibre\" :  3.2,\r\n   \"Carb\" :  48, \r\n   \"Cholesterol\" : 232, \r\n   \"Sodium\" : 2196\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/foods/CH0006?key={{urlKey}}",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"foods",
+						"CH0006"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "{{urlKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update a food",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \"Category\":\"Chinese\", \r\n   \"Name\": \"Ban Mian2\",\r\n   \"Weight\" : 528, \r\n   \"Energy\" : 475,\r\n   \"Protein\":  22, \r\n   \"FatTotal\": 22, \r\n   \"FatSat\": 8.4,\r\n   \"Fibre\" :  3.2,\r\n   \"Carb\" :  48, \r\n   \"Cholesterol\" : 232, \r\n   \"Sodium\" : 2196\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/foods/CH0006?key={{urlKey}}",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"foods",
+						"CH0006"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "{{urlKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a Food",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/foods/CH0006?key={{urlKey}}",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"foods",
+						"CH0006"
+					],
+					"query": [
+						{
+							"key": "key",
+							"value": "{{urlKey}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "urlKey",
+			"value": "2c78afaf-97da-4816-bbee-9ad239abb296\n",
+			"type": "string"
+		},
+		{
+			"key": "courseID",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
