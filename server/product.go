@@ -79,10 +79,22 @@ func validKey(r *http.Request) bool {
 	}
 }
 
+func foodCacheInit() {
+	db, err := sql.Open("mysql", cfg.FormatDSN())
+	// handle error
+	if err != nil {
+		panic(err.Error()) // panic because server cannot function
+	}
+	err = GetProductRecordsInit(db)
+	if err != nil {
+		panic(err.Error()) // panic because server cannot function
+	}
+}
+
 // home is the handler for "/api/v1/" resource
 func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("testing")
-	fmt.Fprintf(w, "Welcome to the REST API Server!")
+	fmt.Fprintf(w, "Welcome to the REST FOOD API Server!")
 }
 
 // allfoods is the handler for "/api/v1/allfoods" resource
@@ -163,6 +175,8 @@ func food(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "404 - Food id not found", http.StatusNotFound)
 			return
 		}
+
+		fmt.Printf("bufferMap : %#v\n", bufferMap)
 
 		//map assertion to interface to map[string]string
 		// for k, v := range bufferMap {

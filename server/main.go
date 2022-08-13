@@ -61,6 +61,8 @@ func init() {
 // main() main function to start the http multiplexer
 // maps URI resource to the handler
 func main() {
+	// Initialise Food Read Cache
+	foodCacheInit()
 
 	router := mux.NewRouter()
 	// can use to restrict to certain host
