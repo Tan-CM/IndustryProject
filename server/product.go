@@ -172,6 +172,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 		// find string with {PrefixId*} for group ID search
 		pattern := regexp.MustCompile("[a-zA-Z]+\\*")
 		IdFound := pattern.FindString(params["fid"])
+
 		fmt.Printf("a: %+v", IdFound)
 
 		// if Id pattern is not found, then use the ID directly
@@ -185,7 +186,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 		} else {
 			// remove * to get the ID prefix
 			prefixID := strings.TrimSuffix(IdFound, "*")
-			fmt.Println("b :", prefixID)
+			fmt.Println("PrefixID :", prefixID)
 
 			// create a food map to be populated to match search
 			bufferMap, err = GetPrefixedRecords(db, prefixID)
