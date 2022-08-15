@@ -1,3 +1,4 @@
+CREATE database foodDB;
 USE foodDB;
 CREATE TABLE foods (
 Id VARCHAR(8) PRIMARY KEY,
@@ -18,16 +19,35 @@ USE FoodDB;
 -- create admin and users
 -- ID: 1, Username: admin1, Password: admin123
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
-VALUES ('CH0001','Chinese','Bak Chang', 132, 276, 8, 10, 3.8, 3.3, 39, 73, 486);
+VALUES ('CHN0001','Chinese','Bak Chang', 132, 276, 8, 10, 3.8, 3.3, 39, 73, 486);
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
-VALUES ('CH0002','Chinese','Dim Sum-Har Gao', 18, 27, 1, 1, 0.3, 0.4, 4, 5, 74);
+VALUES ('CHN0002','Chinese','Dim Sum-Har Gao', 18, 27, 1, 1, 0.3, 0.4, 4, 5, 74);
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
-VALUES ('CH0003','Chinese','Dim Sum-Siew Mai', 16, 29, 1, 1, 0.4, 0.3, 3, 4, 99);
+VALUES ('CHN0003','Chinese','Dim Sum-Siew Mai', 16, 29, 1, 1, 0.4, 0.3, 3, 4, 99);
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
-VALUES ('CH0004','Chinese','Dim Sum-Spring Roll', 22, 70, 1, 4, 1.7, 0.7, 7, 3, 141);
+VALUES ('CHN0004','Chinese','Dim Sum-Spring Roll', 22, 70, 1, 4, 1.7, 0.7, 7, 3, 141);
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
-VALUES ('CH0005','Chinese','Dim Sum-You Tiao', 18, 61, 1, 4, 1.5, 0.4, 6, 6, 35);
+VALUES ('CHN0005','Chinese','Dim Sum-You Tiao', 18, 61, 1, 4, 1.5, 0.4, 6, 6, 35);
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
-VALUES ('CH0006','Chinese','Ban Mian', 528, 475, 22, 22, 8.4, 3.2, 48, 232, 2196);
+VALUES ('CHN0006','Chinese','Ban Mian', 528, 475, 22, 22, 8.4, 3.2, 48, 232, 2196);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0001','Malay','Nasi Lemak', 210, 494, 13, 14, 7.6, 6.5, 80, 76, 838);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0002','Malay','Bee Hoon Soto', 920, 359, 20, 17, 6.8, 3.5, 31, 62, 1537);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0003','Malay','Longtong Syur Lodeh', 775, 798, 46, 40, 21.9, 13.2, 64, 264, 1930);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0004','Malay','Mee Rebus', 571, 571, 23, 17, 5.8, 8, 82, 206, 2164);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0005','Malay','Mee Soto', 541, 433, 19, 13, 5.4, 3.8, 60, 38, 2678);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0001','Indian','Roti Prata - Plain', 70, 209, 5, 7, 2.9, 1.7, 32, 1, 386);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0002','Indian','Chapati', 60, 187, 4, 7, 3.1, 4.1, 28, 0, 155);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0003','Indian','Roti John', 253, 721, 25, 35, 18.1, 11.3, 77, 242, 2011);
+
+
+
 
 select * from Foods;

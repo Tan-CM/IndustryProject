@@ -169,31 +169,33 @@ func food(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		fmt.Println("fid =", params["fid"])
 
-		// check if there is a row for this record with the ID
-		bufferMap, err := GetOneRecord(db, params["fid"])
-		r := regexp.MustCompile("[a-zA-Z]+\\*")
+		// find string with {PrefixId*} for group ID search
+		pattern := regexp.MustCompile("[a-zA-Z]+\\*")
+		IdFound := pattern.FindString(params["fid"])
+		fmt.Printf("a: %+v", IdFound)
 
-		a := r.FindString(params["fid"])
-		fmt.Printf("a: %+v", a)
-		b := strings.TrimSuffix(a, "*")
-		fmt.Println("b :", b)
+		// if Id pattern is not found, then use the ID directly
+		bufferMap := &map[string]productType{}
+		var err error
 
+		if len(IdFound) == 0 {
+			// check if there is a row for this record with the ID
+			bufferMap, err = GetOneRecord(db, params["fid"])
+
+		} else {
+			// remove * to get the ID prefix
+			prefixID := strings.TrimSuffix(IdFound, "*")
+			fmt.Println("b :", prefixID)
+
+			// create a food map to be populated to match search
+			bufferMap, err = GetPrefixedRecords(db, prefixID)
+
+		}
 		if err != nil {
-			// w.WriteHeader(http.StatusNotFound)
-			// w.Write([]byte("404 - Food id not found"))
 			http.Error(w, "404 - Food id not found", http.StatusNotFound)
 			return
 		}
-
-		fmt.Printf("bufferMap : %#v\n", bufferMap)
-
-		//map assertion to interface to map[string]string
-		// for k, v := range bufferMap {
-		// 	fmt.Fprintln(w, k, v.(productType))
-		// }
-
-		// return the specific food in Json
-		//json.NewEncoder(w).Encode(bufferMap[params["fid"]])   //value
+		fmt.Printf("bufferMap : %+v", bufferMap)
 		json.NewEncoder(w).Encode(bufferMap) //key:value
 	}
 

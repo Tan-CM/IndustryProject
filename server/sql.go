@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -94,6 +95,23 @@ func GetProductRecords(db *sql.DB) (*map[string]productType, error) {
 	//return &productList, nil
 	//	return &productMap, nil
 	return &foodMap, nil
+}
+
+// GetRecords gets all the rows of the current table and return as a slice of map
+func GetPrefixedRecords(db *sql.DB, prefix string) (*map[string]productType, error) {
+
+	// create a food map to be populated to match search
+	selectFoodMap := map[string]productType{}
+	for k, v := range foodMap {
+		if strings.HasPrefix(k, prefix) {
+			selectFoodMap[k] = v
+		}
+	}
+
+	if len(selectFoodMap) != 0 {
+		return &selectFoodMap, nil
+	}
+	return &selectFoodMap, errInvalidID
 }
 
 // GetOneRecord checks if there is a existence of a record based on the ID primary key
