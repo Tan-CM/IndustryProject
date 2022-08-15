@@ -7,6 +7,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -165,9 +167,16 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 	// Get does not have a body so only header
 	if r.Method == "GET" {
+		fmt.Println("fid =", params["fid"])
 
 		// check if there is a row for this record with the ID
 		bufferMap, err := GetOneRecord(db, params["fid"])
+		r := regexp.MustCompile("[a-zA-Z]+\\*")
+
+		a := r.FindString(params["fid"])
+		fmt.Printf("a: %+v", a)
+		b := strings.TrimSuffix(a, "*")
+		fmt.Println("b :", b)
 
 		if err != nil {
 			// w.WriteHeader(http.StatusNotFound)
