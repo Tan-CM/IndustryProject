@@ -68,6 +68,7 @@ func main() {
 	// can use to restrict to certain host
 	//router.Host("www.example.com")
 
+	// Note URL path is case sensitive, so exact path is needed to get it to work
 	// register URL paths to handlers
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 	//router.HandleFunc("/api/v1/", home)
@@ -83,6 +84,10 @@ func main() {
 	subrouter.HandleFunc("/foods/{fid}", food).Methods("GET", "PUT", "POST", "DELETE")
 	// if .Method is not defined, all methods are allowed
 	// note more than one key can be used, so mux.Vars contains the key-value pairs
+
+	// Nutrition
+	// Max 5 variable for IDs allowed
+	subrouter.HandleFunc("/foodIntake/{select}", foodTotal).Methods("GET")
 
 	fmt.Printf("Listening at %s\n", hostPort)
 	// log.Fatal(http.ListenAndServe(":5000", router))
