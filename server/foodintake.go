@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -71,22 +70,7 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// // Use mysql as driverName and a valid DSN as dataSourceName:
-	// // user set up password that can access this db connection
-	// //db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:58710)/foodDB")
-	// //db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:58710)/foodDB")
-	// db, err := sql.Open("mysql", cfg.FormatDSN())
-
-	// // handle error
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
-	// // defer the close till after the main function has finished executing
-	// defer db.Close()
-	// //	fmt.Println("Database opened")
-
-	// mux.Vars(r) is the variable immediately after the URL
-	// it can have more than one parameters
+	// get route variable of map[string]string
 	params := mux.Vars(r)
 	fmt.Printf("Parameter = %+v\n", params)
 	fmt.Println("Select ", params["select"])
@@ -94,16 +78,16 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 	// URL parameter is where we can get the parameter
 	vMap := r.URL.Query()
 	fmt.Printf("URL Query : %+v\n", vMap)
-	fmt.Printf("Id :%+v\n", vMap["Id"])
-	count := len(vMap["Id"])
-	fmt.Println("Number of ID parameters :", count)
+	fmt.Printf("food :%+v\n", vMap["food"])
+	count := len(vMap["food"])
+	fmt.Println("Number of food parameters :", count)
 
 	// use make or directly initialise an empty map
 	foodlist := map[string]float32{}
 
 	// Processing the URL stream to ensure it is in the expected format
 	// convert parameter to parameter map
-	for _, v := range vMap["Id"] {
+	for _, v := range vMap["food"] {
 		s := strings.Split(v, ",")
 		// There should be 2 values per parameter
 		if len(s) != 2 {
@@ -112,7 +96,7 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// weight in S[1]
+		// ID in s[0], weight in S[1]
 		fmt.Println("S:", s)
 		if fvalue, err := strconv.ParseFloat(s[1], 32); err == nil {
 			foodlist[s[0]] = (float32)(fvalue)
@@ -128,12 +112,12 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	db, err := sql.Open("mysql", cfg.FormatDSN())
+	// db, err := sql.Open("mysql", cfg.FormatDSN())
 
-	// handle error
-	if err != nil {
-		panic(err.Error())
-	}
+	// // handle error
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
 
 	var food productType
 	// if Id pattern is not found, then use the ID directly
@@ -154,7 +138,7 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 	case "VALUE":
 
 		for k, v := range foodlist {
-			bufferMap, err = GetOneRecord(db, k) // get food data
+			bufferMap, err = GetOneRecord(k) // get food data
 			food = (*bufferMap)[k]
 
 			fmt.Printf("food : %#v, v: %+v\n", food, v)
@@ -199,7 +183,7 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 
 		// compute total nutrient value
 		for k, v := range foodlist {
-			bufferMap, err = GetOneRecord(db, k) // get food data
+			bufferMap, err = GetOneRecord(k) // get food data
 			food = (*bufferMap)[k]
 
 			fmt.Printf("food : %#v, v: %+v\n", food, v)

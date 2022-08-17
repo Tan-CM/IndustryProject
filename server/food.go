@@ -102,22 +102,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 // allfoods is the handler for "/api/v1/allfoods" resource
 func allfoods(w http.ResponseWriter, r *http.Request) {
 
-	// Use mysql as driverName and a valid DSN as dataSourceName:
-	// user set up password that can access this db connection
-	// db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:58710)/foodDB")
-	// db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:58710)/foodDB")
-	db, err := sql.Open("mysql", cfg.FormatDSN())
-	//	fmt.Println("Database opened")
-	// handle error
-	if err != nil {
-		panic(err.Error()) // panic because server cannot function
-	}
-	// defer the close till after the main function has finished executing
-	defer db.Close()
-
-	//var bufferMap map[string]interface{}
-
-	bufferMap, err := GetProductRecords(db)
+	bufferMap, err := GetProductRecords()
 
 	if err != nil {
 		http.Error(w, "SQL DB Read Error", http.StatusInternalServerError)
@@ -181,7 +166,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 		if len(IdFound) == 0 {
 			// check if there is a row for this record with the ID
-			bufferMap, err = GetOneRecord(db, params["fid"])
+			bufferMap, err = GetOneRecord(params["fid"])
 
 		} else {
 			// remove * to get the ID prefix
@@ -189,7 +174,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("PrefixID :", prefixID)
 
 			// create a food map to be populated to match search
-			bufferMap, err = GetPrefixedRecords(db, prefixID)
+			bufferMap, err = GetPrefixedRecords(prefixID)
 
 		}
 		if err != nil {
