@@ -85,9 +85,11 @@ func main() {
 	// if .Method is not defined, all methods are allowed
 	// note more than one key can be used, so mux.Vars contains the key-value pairs
 
-	// Nutrition
-	// Max 5 variable for IDs allowed
+	// FoodIntake
 	subrouter.HandleFunc("/foodIntake/{select}", foodTotal).Methods("GET")
+
+	// Users
+	subrouter.HandleFunc("/user", user).Methods("GET", "PUT", "POST", "DELETE")
 
 	fmt.Printf("Listening at %s\n", hostPort)
 	// log.Fatal(http.ListenAndServe(":5000", router))

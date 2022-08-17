@@ -70,12 +70,14 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//{{baseURL}}/foodIntake/{select} can be "Value" or "Metric"
 	// get route variable of map[string]string
 	params := mux.Vars(r)
 	fmt.Printf("Parameter = %+v\n", params)
 	fmt.Println("Select ", params["select"])
 
-	// URL parameter is where we can get the parameter
+	// ?key={{urlKey}}&gender=male&food=CHN0001,132&food=CHN0002,18&food=CHN0003,16&food=CHN0004,22&food=CHN0005,18
+	// URL parameter is where we can get all the parameters
 	vMap := r.URL.Query()
 	fmt.Printf("URL Query : %+v\n", vMap)
 	fmt.Printf("food :%+v\n", vMap["food"])
