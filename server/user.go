@@ -9,6 +9,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 // Note JSON field needs to be exported to encoding/json to enable Encoding/Decoding, so it has to be in CAPITAL
@@ -38,6 +40,42 @@ func user(w http.ResponseWriter, r *http.Request) {
 	// it can have more than one parameters
 	params := mux.Vars(r)
 	fmt.Println("parameter =", params)
+
+	// Creating UUID Version 4
+	// panic on error
+	// u1 := uuid.Must(uuid.NewV4(), errors.New("UUID Error"))
+	// fmt.Printf("UUIDv4: %s\n", u1)
+
+	// or error handling
+	u2 := uuid.NewV4()
+	if err != nil {
+		fmt.Printf("Something went wrong: %s", err)
+		return
+	}
+	fmt.Printf("UUIDv4:1 %s\n", u2)
+
+	u2 = uuid.NewV4()
+	if err != nil {
+		fmt.Printf("Something went wrong: %s", err)
+		return
+	}
+	fmt.Printf("UUIDv4:2 %s\n", u2)
+
+	// Parsing UUID from string input
+	u2, err = uuid.FromString("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+	if err != nil {
+		fmt.Printf("Something went wrong: %s", err)
+		return
+	}
+	fmt.Printf("Successfully parsed:1 %s\n", u2)
+
+	// Parsing UUID from string input
+	u2, err = uuid.FromString("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+	if err != nil {
+		fmt.Printf("Something went wrong: %s", err)
+		return
+	}
+	fmt.Printf("Successfully parsed:2 %s\n", u2)
 
 	// // Get does not have a body so only header
 	// if r.Method == "GET" {
