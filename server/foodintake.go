@@ -61,9 +61,16 @@ var foodDailyLimit = map[string]nutriValue{
 
 // food() is the hanlder for "/api/v1/foods/{fid}" resource
 func foodTotal(w http.ResponseWriter, r *http.Request) {
+	v := r.URL.Query()
+	//fmt.Printf("v :%+v", v)
+	key, ok := v["key"]
+	if !ok {
+		http.Error(w, "401 - Missing key in URL", http.StatusNotFound)
+		return
+	}
 
 	// vakidate key for parameter key-value
-	if !validKey(r) {
+	if !validRegUser(key[0]) {
 		// w.WriteHeader(http.StatusNotFound)
 		// w.Write([]byte("401 - Invalid key"))
 		http.Error(w, "401 - Invalid key", http.StatusNotFound)

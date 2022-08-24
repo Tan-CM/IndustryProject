@@ -31,6 +31,50 @@ VALUES ('CHN0005','Chinese','Dim Sum-You Tiao', 18, 61, 1, 4, 1.5, 0.4, 6, 6, 35
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
 VALUES ('CHN0006','Chinese','Ban Mian', 528, 475, 22, 22, 8.4, 3.2, 48, 232, 2196);
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0007','Chinese','Char Kway Teow', 384, 744, 23, 38, 29.2, 7.3, 76, 234, 1459);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0008','Chinese','Char Siew Rice', 327, 605, 24, 16, 11.9, 5.9, 91, 56, 880);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0009','Chinese','Roast Chicken Rice', 382, 607, 25, 23, 8.7, 2, 75, 47, 1287);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0010','Chinese','Herbal Chicken-Soup', 534, 145, 24, 5, 1.8, 0.6, 1, 119, 909);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0011','Chinese','Roasted Duck Rice', 410, 673, 24, 20, 5.9, 7.6, 99, 92, 545);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0012','Chinese','Skinless Duck Rice', 350, 530, 24, 11, 3.6, 3.4, 99, 80, 326);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0013','Chinese','Fishball Noodle-Dry', 327, 370, 19, 8, 3.3, 3.9, 55, 43, 1645);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0014','Chinese','Fishball Noodle-Soup', 798, 551, 30, 10, 2.4, 8.8, 88, 40, 2913);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0015','Chinese','Fried Carrot Cake', 295, 493, 2, 35, 14.1, 5.9, 42, 109, 1289);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0016','Chinese','Fried Hokkien Mee', 442, 522, 18, 19, 7.3, 4.4, 69, 133, 1423);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0017','Chinese','Fried Rice', 428, 907, 28, 33, 13.6, 0.9, 125, 175, 1245);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0018','Chinese','Kway Chap', 611, 650, 33, 26, 11.6, 4.3, 70, 348, 2303);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0019','Chinese','Laksa Lemak', 540, 591, 17, 32, 17.8, 7, 58, 81, 1588);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0020','Chinese','Lor Mee', 540, 383, 15, 11, 4.9, 6.5, 55, 140, 2538);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0021','Chinese','Minced Pork Noodle-Dry', 311, 511, 20, 23, 9.2, 4.9, 57, 29, 1491);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0022','Chinese','Minced Pork Noodle-Soup', 597, 383, 18, 12, 4.8, 8.5, 50, 37, 1740);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0023','Chinese','Penang Laksa', 569, 377, 18, 2, 0.6, 4, 71, 11, 2287);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0024','Chinese','Minced Pork Century Egg Porridge', 512, 224, 11, 5, 2.3, 2.5, 340, 370, 834);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0025','Chinese','Prawn Mee-Soup', 574, 294, 19, 2, 1.1, 4, 49, 40, 2422);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0026','Chinese','Slice Fish Bee Hoon-Soup', 686, 349, 22, 8, 3.5, 3.4, 48, 28, 1413);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0027','Chinese','Wonton Mee-Dry', 330, 411, 19, 12, 5, 5.3, 55, 36, 1502);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('CHN0028','Chinese','Wonton Mee-Soup', 545, 290, 19, 5, 0, 1.6, 41, 11, 1804);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
 VALUES ('MAL0001','Malay','Nasi Lemak', 210, 494, 13, 14, 7.6, 6.5, 80, 76, 838);
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
 VALUES ('MAL0002','Malay','Bee Hoon Soto', 920, 359, 20, 17, 6.8, 3.5, 31, 62, 1537);
@@ -40,6 +84,26 @@ INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat
 VALUES ('MAL0004','Malay','Mee Rebus', 571, 571, 23, 17, 5.8, 8, 82, 206, 2164);
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
 VALUES ('MAL0005','Malay','Mee Soto', 541, 433, 19, 13, 5.4, 3.8, 60, 38, 2678);
+
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0006','Malay','Curry Puff', 37, 131, 4, 8, 3.8, 0.6, 11, 0, 168);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0007','Malay','Pisang Goreng', 65, 197, 1, 5, 3.4, 2.3, 36, 0, 103);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0008','Malay','Chicken Nasi Biryani', 488, 877, 39, 35, 14.8, 8.4, 102, 158, 1656);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0009','Malay','Beef Rendang', 93, 208, 24, 12, 5.8, 2.6, 1, 83, 466);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0010','Malay','Ayam Goreng', 80, 141, 16, 9, 3.1, 0, 0, 56, 228);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0011','Malay','Nasi Goreng', 377, 742, 21, 27, 11.3, 4.1, 103, 200, 1467);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0012','Malay','Mee Goreng', 309, 500, 18, 20, 8.3, 4.4, 61, 135, 1851);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0013','Malay','Mutton Satay', 11, 31, 3, 1, 0.6, 0, 2, 12, 32);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAL0014','Malay','Mee Soto', 293, 342, 21, 28, 15.1, 1.4, 2, 83, 480);
+
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
 VALUES ('IND0001','Indian','Roti Prata - Plain', 70, 209, 5, 7, 2.9, 1.7, 32, 1, 386);
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
@@ -47,6 +111,72 @@ VALUES ('IND0002','Indian','Chapati', 60, 187, 4, 7, 3.1, 4.1, 28, 0, 155);
 INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
 VALUES ('IND0003','Indian','Roti John', 253, 721, 25, 35, 18.1, 11.3, 77, 242, 2011);
 
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0004','Indian','Naan Bread', 131, 357, 11, 9, 4.2, 3.3, 57, 21, 430);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0005','Indian','Mutton Murtabak', 211, 373, 15, 17, 7, 9.3, 39, 131, 1365);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0006','Indian','Chicken Tandoori', 112, 156, 19, 8, 2.7, 0, 2, 49, 480);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0007','Indian','Chicken Masala', 455, 860, 87, 50, 18.7, 0, 16, 255, 2330);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0008','Indian','Chicken Tika', 71, 173, 24, 8, 2.6, 0.9, 1, 60, 187);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0009','Indian','Mutton Soup', 934, 211, 20, 9, 3.2, 6.3, 13, 39, 1658);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0010','Indian','Potato Mutton Curry', 191, 284, 34, 12, 6, 3.3, 9, 146, 636);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0011','Indian','Fish Tika', 99, 128, 23, 4, 1.3, 0.4, 1, 22, 414);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0012','Indian','Mutton Dum Biryani', 859, 1142, 47, 46, 24.9, 17, 135, 180, 1400);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0013','Indian','Indian Rojak', 116, 299, 11, 17, 7.7, 2.7, 25, 86, 292);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0014','Indian','Vegetable Samosa', 68, 206, 4, 11, 5.3, 18, 22, 12, 311);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('IND0015','Indian','Curry Chickpeas', 253, 305, 18, 15, 8.1, 15.3, 23, 12, 1206);
+
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAC0001','MacDonald','Mac Big Breakfast', 266, 516, 27, 24, 6, 5, 47, 417, 970);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAC0002','MacDonald','McChicken', 156, 387, 14, 17, 5, 3, 43, 35, 770);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAC0003','MacDonald','Fillet O-Fish', 124, 332, 15, 13, 3.5, 2, 38, 90, 570);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAC0004','MacDonald','Double Cheese Burger', 164, 440, 28, 22, 11.6, 2, 32, 2, 1010);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAC0005','MacDonald','Chicken McNugget', 114, 303, 16, 7, 0.2, 0, 18, 59, 520);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAC0006','MacDonald','French Fries (M)', 116, 374, 4, 19, 7.6, 5, 47, 1, 234);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('MAC0007','MacDonald','Sausage Muffin with Egg', 121, 358, 23, 16, 6.4, 2, 30, 263, 728);
+
+
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('BUR0001','Burger King','Bacon Cheeseburger', 126, 330, 18, 16, 7, 1, 28, 55, 810);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('BUR0002','Burger King','Onion Ring', 43, 320, 3, 16, 3, 5, 41, 0, 840);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('BUR0003','Burger King','Whopper Jr', 158, 340, 14, 18, 5, 2, 31, 40, 520);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('BUR0004','Burger King','Long Chicken', 209, 573, 23, 33.4, 8, 0, 48, 0, 600);
+
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('KFC0001','Kentucky FC','Hot and Crispy Chicken-Thigh', 142, 399, 26, 27, 10.8, 0, 13, 0, 601);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('KFC0002','Kentucky FC','Original Recipe Chicken-Drumstick', 63, 149, 16.4, 8.5, 3.3, 0, 1.7, 0, 256);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('KFC0003','Kentucky FC','Original Recipe Chicken-Thigh', 128, 329, 25.6, 20.6, 7.2, 0, 10.4, 0, 538);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('KFC0004','Kentucky FC','Original Recipe Chicken-Wing', 53, 157, 11.8, 9.9, 3.4, 0, 5.3, 0, 299);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('KFC0005','Kentucky FC','Zinger Burger', 210, 633, 27.5, 37.5, 12.2, 0, 45.6, 0, 1168);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('KFC0006','Kentucky FC','Coleslaw(M)', 160,197, 2.4, 14, 2.9, 0, 15.4, 0, 78);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('KFC0007','Kentucky FC','Hot & crispy Chicken-Wing', 58, 190, 11.5, 13.3, 5.3, 0, 6, 0, 271);
+INSERT INTO Foods (Id, Category, Name, Weight, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium)
+VALUES ('KFC0008','Kentucky FC','Original Recipe Chicken-Rib', 105, 257, 27.1, 14.1, 5.7, 0, 5.7, 0, 545);
 
 
 

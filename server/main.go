@@ -19,7 +19,8 @@ var urlKey string
 var hostPort string
 
 //var sqlDBConnection string
-var cfg mysql.Config // configuration for DSN
+var cfg mysql.Config     // configuration for DSN
+var cfgUser mysql.Config // configuration for DSN
 
 // init() initialises the system
 // Set up the environment
@@ -54,7 +55,17 @@ func init() {
 		Passwd: os.Getenv("SQL_PASSWORD"),
 		Net:    "tcp",
 		Addr:   os.Getenv("SQL_ADDR"),
-		DBName: os.Getenv("SQL_DB"),
+		//DBName: os.Getenv("SQL_DB"),
+		DBName: "foodDB",
+	}
+	// SQL DB Data Source Name config
+	cfgUser = mysql.Config{
+		User:   os.Getenv("SQL_USER"),
+		Passwd: os.Getenv("SQL_PASSWORD"),
+		Net:    "tcp",
+		Addr:   os.Getenv("SQL_ADDR"),
+		//DBName: os.Getenv("SQL_DB"),
+		DBName: "userDB",
 	}
 }
 
@@ -81,7 +92,7 @@ func main() {
 	// can use regex to filter variable, instead of allowing any fid to pass
 	//router.HandleFunc("/api/v1/foods/{fid:IOT\\d{3}}", course).Methods("GET", "PUT", "POST", "DELETE")
 	//router.HandleFunc("/api/v1/foods/{fid}", course).Methods("GET", "PUT", "POST", "DELETE")
-	subrouter.HandleFunc("/foods/{fid}", food).Methods("GET", "PUT", "POST", "DELETE")
+	subrouter.HandleFunc("/food/{fid}", food).Methods("GET", "PUT", "POST", "DELETE", "PATCH")
 	// if .Method is not defined, all methods are allowed
 	// note more than one key can be used, so mux.Vars contains the key-value pairs
 
@@ -89,7 +100,8 @@ func main() {
 	subrouter.HandleFunc("/foodIntake/{select}", foodTotal).Methods("GET")
 
 	// Users
-	subrouter.HandleFunc("/user", user).Methods("GET", "PUT", "POST", "DELETE")
+	subrouter.HandleFunc("/users", users).Methods("GET")
+	subrouter.HandleFunc("/user/{uid}", user).Methods("GET", "PATCH", "POST", "DELETE")
 
 	fmt.Printf("Listening at %s\n", hostPort)
 	// log.Fatal(http.ListenAndServe(":5000", router))
