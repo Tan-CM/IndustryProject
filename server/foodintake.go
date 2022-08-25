@@ -147,7 +147,7 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 	case "VALUE":
 
 		for k, v := range foodlist {
-			bufferMap, err = GetOneRecord(k) // get food data
+			bufferMap, err = getOneRecord(k) // get food data
 			food = (*bufferMap)[k]
 
 			fmt.Printf("food : %#v, v: %+v\n", food, v)
@@ -192,7 +192,7 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 
 		// compute total nutrient value
 		for k, v := range foodlist {
-			bufferMap, err = GetOneRecord(k) // get food data
+			bufferMap, err = getOneRecord(k) // get food data
 			food = (*bufferMap)[k]
 
 			fmt.Printf("food : %#v, v: %+v\n", food, v)

@@ -34,17 +34,10 @@ const (
 	USER  = "2" // USER == 2
 )
 
-type userNameId struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
-type mapInterface map[string]interface{}
-
-// Expected Key list for PATCH
-var keysUser = []string{
-	"name",
-	"email",
+// Define JSON keys and type for JSON validation
+var userKeysValueTypes = map[string]string{
+	"name":  "string",
+	"email": "string",
 }
 
 // users is the handler for "/api/v1/users" resource
@@ -62,7 +55,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 	if !validAdmin(key[0]) {
 		// w.WriteHeader(http.StatusNotFound)
 		// w.Write([]byte("401 - Invalid key"))
-		http.Error(w, "401 - Invalid key", http.StatusNotFound)
+		http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
 		return
 	}
 
@@ -295,24 +288,16 @@ func user(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("New User Request: %+v\n", newUserReq)
 
 				// validate JSON data is correct
-				if !userValidKeysValues(newUserReq, keysUser) {
+				if !validateKeysValues(newUserReq, userKeysValueTypes) {
 					w.WriteHeader(http.StatusUnprocessableEntity)
 					w.Write([]byte("422 - Error in JSON body map key-value"))
 					return
 				}
 
-				var newUser userNameId
-				// assertion
-				if v, ok := newUserReq["name"]; ok {
-					newUser.Name = v.(string)
-				}
-				if v, ok := newUserReq["email"]; ok {
-					newUser.Email = v.(string)
-				}
-
 				if validAdmin(key[0]) {
 					// Edit row if row exist
-					if err := userUpdateRecord(db, newUser, params["uid"]); err != nil {
+					//if err := userUpdateRecord(db, newUser, params["uid"]); err != nil {
+					if err := userUpdateRecord(db, newUserReq, params["uid"]); err != nil {
 						if err == errDuplicateID {
 							w.WriteHeader(http.StatusUnprocessableEntity)
 							w.Write([]byte("422 - Error - New Email is used"))
@@ -332,11 +317,11 @@ func user(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("user ID :", params["uid"])
 
 				if !verifiedUser(key[0], params["uid"]) {
-					http.Error(w, "401 - Mismatched Access key with Id", http.StatusNotFound)
+					http.Error(w, "401 - Mismatched Access key with Id??", http.StatusNotFound)
 					return
 				}
 
-				if err := userUpdateRecord(db, newUser, params["uid"]); err != nil {
+				if err := userUpdateRecord(db, newUserReq, params["uid"]); err != nil {
 					if err == errDuplicateID {
 						w.WriteHeader(http.StatusUnprocessableEntity)
 						w.Write([]byte("422 - Error - New Email is used"))
@@ -357,42 +342,4 @@ func user(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-}
-
-// count all the valid keys of JSON object
-func userValidKeysValues(mapX mapInterface, keys []string) bool {
-	// validate JSON data is correct
-	//	fmt.Println("length = ", len(mapX))
-	if len(mapX) == 0 {
-		return false
-	}
-
-	// validate key
-	var count int
-	for _, key := range keys {
-		if _, ok := mapX[key]; ok {
-			count++
-		}
-	}
-	//	fmt.Println("Key Count = ", count)
-
-	if len(mapX) != count {
-		return false
-	}
-
-	// validate values
-	count = 0
-	for i := 0; i < len(keys); i++ {
-		if v, ok := mapX[keys[i]].(string); ok {
-			count++
-			fmt.Println(v)
-		}
-	}
-
-	//	fmt.Println("Value Type Match Count = ", count)
-
-	if len(mapX) != count {
-		return false
-	}
-	return true
 }

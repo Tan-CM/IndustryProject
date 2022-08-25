@@ -35,24 +35,20 @@ type foodListType struct {
 	FoodMap *map[string]productType `json:"foodMap"`
 }
 
-// Expected Key list for PATCH
-// type keyValue struct {
-// 	key string,
-// 	type string,
-// }
-var keysFood = []string{
-	"id",
-	"category",
-	"name",
-	"weight",
-	"energy",
-	"protein",
-	"fatTotal",
-	"fatSat",
-	"fibre",
-	"carb",
-	"cholesterol",
-	"sodium",
+// Define JSON keys and type for JSON validation
+var foodKeysValueTypes = map[string]string{
+	"id":          "string",
+	"category":    "string",
+	"name":        "string",
+	"weight":      "float64",
+	"energy":      "float64",
+	"protein":     "float64",
+	"fatTotal":    "float64",
+	"fatSat":      "float64",
+	"fibre":       "float64",
+	"carb":        "float64",
+	"cholesterol": "float64",
+	"sodium":      "float64",
 }
 
 func foodCacheInit() {
@@ -61,7 +57,7 @@ func foodCacheInit() {
 	if err != nil {
 		panic(err.Error()) // panic because server cannot function
 	}
-	err = GetProductRecordsInit(db)
+	err = getProductRecordsInit(db)
 	if err != nil {
 		panic(err.Error()) // panic because server cannot function
 	}
@@ -96,14 +92,14 @@ func allfoods(w http.ResponseWriter, r *http.Request) {
 	if !validAdmin(key[0]) {
 		// w.WriteHeader(http.StatusNotFound)
 		// w.Write([]byte("401 - Invalid key"))
-		http.Error(w, "401 - Invalid key", http.StatusNotFound)
+		http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
 		return
 	}
 
 	var foodList foodListType
 	var err error
 
-	foodList.FoodMap, err = GetProductRecords()
+	foodList.FoodMap, err = getProductRecords()
 
 	if err != nil {
 		http.Error(w, "SQL DB Read Error", http.StatusInternalServerError)
@@ -160,7 +156,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 		if !validRegUser(key[0]) {
 			// w.WriteHeader(http.StatusNotFound)
 			// w.Write([]byte("401 - Invalid key"))
-			http.Error(w, "401 - Invalid keyX", http.StatusNotFound)
+			http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
 			return
 		}
 
@@ -178,7 +174,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 		if len(IdFound) == 0 {
 			// check if there is a row for this record with the ID
-			bufferMap, err = GetOneRecord(params["fid"])
+			bufferMap, err = getOneRecord(params["fid"])
 			if err != nil {
 				http.Error(w, "404 - Food id not found", http.StatusNotFound)
 				return
@@ -197,7 +193,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 			var foodList foodListType
 			//bufferMap, err = GetPrefixedRecords(prefixID)
-			foodList.FoodMap, err = GetPrefixedRecords(prefixID)
+			foodList.FoodMap, err = getPrefixedRecords(prefixID)
 			if err != nil {
 				http.Error(w, "404 - Food id not found", http.StatusNotFound)
 				return
@@ -220,11 +216,11 @@ func food(w http.ResponseWriter, r *http.Request) {
 		if !validAdmin(key[0]) {
 			// w.WriteHeader(http.StatusNotFound)
 			// w.Write([]byte("401 - Invalid key"))
-			http.Error(w, "401 - Invalid key", http.StatusNotFound)
+			http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
 			return
 		}
 
-		count, err := GetRowCount(db, params["fid"])
+		count, err := getRowCount(db, params["fid"])
 		if err != nil {
 			fmt.Println("Error", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -246,7 +242,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// count == 1
-		DeleteRecord(db, params["fid"])
+		deleteRecord(db, params["fid"])
 		w.WriteHeader(http.StatusAccepted)
 		w.Write([]byte("202 - Food item deleted: " + params["fid"]))
 	}
@@ -276,7 +272,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("Food : %+v\n", newFood)
 
 				// check if there is a row for this record with the ID
-				count, err := GetRowCount(db, params["fid"])
+				count, err := getRowCount(db, params["fid"])
 				if err != nil {
 					fmt.Println("Error", err)
 					w.WriteHeader(http.StatusInternalServerError)
@@ -286,7 +282,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 				switch {
 				case count == 0:
-					InsertRecord(db, &newFood, params["fid"])
+					insertRecord(db, &newFood, params["fid"])
 					w.WriteHeader(http.StatusCreated)
 					w.Write([]byte("201 - Food item added: " + params["fid"] + " Category: " + newFood.Category +
 						" Name: " + newFood.Name))
@@ -315,7 +311,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 			if !validAdmin(key[0]) {
 				// w.WriteHeader(http.StatusNotFound)
 				// w.Write([]byte("401 - Invalid key"))
-				http.Error(w, "401 - Invalid key", http.StatusNotFound)
+				http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
 				return
 			}
 
@@ -335,20 +331,20 @@ func food(w http.ResponseWriter, r *http.Request) {
 				// } // check if food item exists; add only if does not exist
 
 				// validate the JSON keys and value type in body are correct
-				if !foodValidKeysValues(newFood, keysFood) {
+				if !validateKeysValues(newFood, foodKeysValueTypes) {
 					w.WriteHeader(http.StatusUnprocessableEntity)
 					w.Write([]byte("422 - Error in JSON body map --> key-value pairs"))
 					return
 				}
 				// validate number of key-value pairs
-				if len(newFood) != len(keysFood) {
+				if len(newFood) != len(foodKeysValueTypes) {
 					w.WriteHeader(http.StatusUnprocessableEntity)
 					w.Write([]byte("422 - Error in JSON body --> Incomplete key-value pairs"))
 					return
 				}
 
 				// check if there is a row for this record with the ID
-				count, err := GetRowCount(db, params["fid"])
+				count, err := getRowCount(db, params["fid"])
 				if err != nil {
 					fmt.Println("Error", err)
 					w.WriteHeader(http.StatusInternalServerError)
@@ -369,7 +365,12 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 				case count == 1:
 					// Edit row if row exist
-					EditRecord(db, &newFood, params["fid"])
+					err = editRecord(db, &newFood, params["fid"])
+					if err != nil {
+						w.WriteHeader(http.StatusUnprocessableEntity)
+						w.Write([]byte("422 - JSON Body Error - New Id is already used"))
+						return
+					}
 					w.WriteHeader(http.StatusAccepted)
 					// w.Write([]byte("202 - Food item Updated: " + params["fid"] +
 					// 	" Category: " + newFood.Category + " Name:" + newFood.Name))
@@ -393,7 +394,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 			if !validAdmin(key[0]) {
 				// w.WriteHeader(http.StatusNotFound)
 				// w.Write([]byte("401 - Invalid key"))
-				http.Error(w, "401 - Invalid key", http.StatusNotFound)
+				http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
 				return
 			}
 
@@ -412,7 +413,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("newFood Size: %+v\n", len(newFood))
 
 				// check if there is a row for this record with the ID
-				count, err := GetRowCount(db, params["fid"])
+				count, err := getRowCount(db, params["fid"])
 				if err != nil {
 					fmt.Println("Error", err)
 					w.WriteHeader(http.StatusInternalServerError)
@@ -429,17 +430,25 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 				case count == 1:
 					// validate the JSON keys in body are correct
-					if !foodValidKeysValues(newFood, keysFood) {
+					if !validateKeysValues(newFood, foodKeysValueTypes) {
 						w.WriteHeader(http.StatusUnprocessableEntity)
 						w.Write([]byte("422 - Error in JSON body map key-value pairs"))
 						return
 					}
 
+					fmt.Printf("New Food : %+v, %+v\n", newFood, params["fid"])
+
 					// Edit row if row exist
-					err := UpdateRecord(db, newFood, params["fid"])
+					err := updateRecord(db, newFood, params["fid"])
 					if err != nil {
-						w.WriteHeader(http.StatusUnprocessableEntity)
-						w.Write([]byte("422 - Please supply updated food information body in JSON format"))
+						if err == errAlreadyUsedID {
+							w.WriteHeader(http.StatusUnprocessableEntity)
+							w.Write([]byte("422 - JSON Body Error - New Id is already used"))
+						} else {
+							w.WriteHeader(http.StatusUnprocessableEntity)
+							w.Write([]byte("422 - Please supply updated food information body in JSON format"))
+						}
+						return
 					}
 					w.WriteHeader(http.StatusAccepted)
 					w.Write([]byte("202 - Food item is Patched: " + params["fid"]))
@@ -457,49 +466,4 @@ func food(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-}
-
-// count all the valid keys of JSON object
-func foodValidKeysValues(mapX mapInterface, keys []string) bool {
-	// validate JSON data is correct
-
-	if len(mapX) == 0 {
-		return false
-	}
-
-	var count int
-	// validate keys
-	for _, key := range keys {
-		if _, ok := mapX[key]; ok {
-			count++
-		}
-	}
-	if len(mapX) != count {
-		return false
-	}
-
-	//	fmt.Println("Key Count = ", count)
-
-	// validate values
-	count = 0
-	for i := 0; i < len(keys); i++ {
-		if i < 3 {
-			if v, ok := mapX[keys[i]].(string); ok {
-				count++
-				fmt.Println(v)
-			}
-		} else {
-			if v, ok := mapX[keys[i]].(float64); ok {
-				count++
-				fmt.Println(v)
-			}
-		}
-	}
-
-	//	fmt.Println("Value Type Match Count = ", count)
-
-	if len(mapX) != count {
-		return false
-	}
-	return true
 }
