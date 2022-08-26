@@ -1,0 +1,18 @@
+CREATE database userDB;
+USE userDB;
+CREATE TABLE USERS (
+Email VARCHAR(40) PRIMARY KEY,
+Name VARCHAR(30),
+AccessKey VARCHAR (40)
+Type ENUM('admin', 'user')
+);
+
+USE userDB;
+
+-- create admin and users
+-- ID: 1, Username: admin1, Password: admin123
+INSERT INTO users (Email, Name, Weight, AccessKey, Type)
+VALUES ('tanchorming@gmail.com','Tan Chor Ming','2c78afaf-97da-4816-bbee-9ad239abb296','admin');
+
+
+select * from USERS;
