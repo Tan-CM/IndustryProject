@@ -2,7 +2,7 @@ CREATE database foodDB;
 USE foodDB;
 CREATE TABLE foods (
 Id VARCHAR(8) PRIMARY KEY,
-Group VARCHAR(20),
+Category VARCHAR(20),
 Name VARCHAR(60),
 Weight FLOAT(24),
 Energy FLOAT(24),

@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -17,17 +18,17 @@ import (
 // Note JSON field needs to be exported to encoding/json to enable Encoding/Decoding, so it has to be in CAPITAL
 type productType struct {
 	//	Id          string  `json:"id"`
-	Category    string  `json:"category"`
-	Name        string  `json:"name"`
-	Weight      float32 `json:"weight"`
-	Energy      float32 `json:"energy"`
-	Protein     float32 `json:"protein"`
-	FatTotal    float32 `json:"fatTotal"`
-	FatSat      float32 `json:"fatSat"`
-	Fibre       float32 `json:"fibre"`
-	Carb        float32 `json:"carb"`
-	Cholesterol float32 `json:"cholesterol"`
-	Sodium      float32 `json:"sodium"`
+	Category    string  `json:"category" valid:"required,stringlength(3|20),matches(^[a-zA-Z]+$)"`
+	Name        string  `json:"name" valid:"required,stringlength(3|60),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)"`
+	Weight      float32 `json:"weight" valid:"required,range(0|1000)"`
+	Energy      float32 `json:"energy" valid:"required,range(0|1000)"`
+	Protein     float32 `json:"protein" valid:"required,range(0|100)"`
+	FatTotal    float32 `json:"fatTotal" valid:"required,range(0|100)"`
+	FatSat      float32 `json:"fatSat" valid:"required,range(0|100)"`
+	Fibre       float32 `json:"fibre" valid:"required,range(0|100)"`
+	Carb        float32 `json:"carb" valid:"required,range(0|500)"`
+	Cholesterol float32 `json:"cholesterol" valid:"required,range(0|1000)"`
+	Sodium      float32 `json:"sodium" valid:"required,range(0|5000)"`
 }
 
 type foodListType struct {
@@ -35,20 +36,37 @@ type foodListType struct {
 	FoodMap *map[string]productType `json:"foodMap"`
 }
 
-// Define JSON keys and type for JSON validation
-var foodKeysValueTypes = map[string]string{
-	"id":          "string",
-	"category":    "string",
-	"name":        "string",
-	"weight":      "float64",
-	"energy":      "float64",
-	"protein":     "float64",
-	"fatTotal":    "float64",
-	"fatSat":      "float64",
-	"fibre":       "float64",
-	"carb":        "float64",
-	"cholesterol": "float64",
-	"sodium":      "float64",
+// Define JSON keys and type for JSON validation for interface{} is float64
+var foodKeyTypeRules = map[string]string{
+	"Id":          "string",
+	"Category":    "string",
+	"Name":        "string",
+	"Weight":      "float64",
+	"Energy":      "float64",
+	"Protein":     "float64",
+	"FatTotal":    "float64",
+	"FatSat":      "float64",
+	"Fibre":       "float64",
+	"Carb":        "float64",
+	"Cholesterol": "float64",
+	"Sodium":      "float64",
+}
+
+// Map form for Map validation (govalidator)
+// map is for POST, PUT and PATCH so required has to be removed
+var foodMapRules = map[string]interface{}{
+	"Id":          "required,matches(^[a-zA-Z]{3}[0-9]{4}$)",
+	"Category":    "required,stringlength(3|20),matches(^[a-zA-Z]+$)",
+	"Name":        "required,stringlength(3|60),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)",
+	"Weight":      "required,range(0|1000)",
+	"Energy":      "required,range(0|1000)",
+	"Protein":     "range(0|100)", // required removed to accept zero value
+	"FatTotal":    "range(0|100)",
+	"FatSat":      "range(0|100)",
+	"Fibre":       "range(0|100)",
+	"Carb":        "range(0|500)",
+	"Cholesterol": "range(0|1000)",
+	"Sodium":      "range(0|5000)",
 }
 
 func foodCacheInit() {
@@ -264,12 +282,13 @@ func food(w http.ResponseWriter, r *http.Request) {
 			if err == nil {
 				// parse JSON to object data structure
 				json.Unmarshal(reqBody, &newFood)
-				if newFood.Category == "" || newFood.Name == "" { // empty title
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - Please supply food " + "information " + "in JSON format"))
+
+				// struct value validaion with struct tag
+				if ok, err := govalidator.ValidateStruct(newFood); !ok {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("422 - JSON Data Value Error, " + err.Error()))
 					return
-				} // check if food item exists; add only if food item does not exist
-				fmt.Printf("Food : %+v\n", newFood)
+				}
 
 				// check if there is a row for this record with the ID
 				count, err := getRowCount(db, params["fid"])
@@ -324,22 +343,17 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 				fmt.Printf("New Food JSON : %+v\n", newFood)
 
-				// if newFood.Category == "" || newFood.Name == "" { // empty category or name in body
-				// 	w.WriteHeader(http.StatusUnprocessableEntity)
-				// 	w.Write([]byte("422 - Please supply food " + " information " + "in JSON format"))
-				// 	return
-				// } // check if food item exists; add only if does not exist
-
 				// validate the JSON keys and value type in body are correct
-				if !validateKeysValues(newFood, foodKeysValueTypes) {
+				if ok, err := validateKeysValueTypes(newFood, foodKeyTypeRules); !ok {
 					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - Error in JSON body map --> key-value pairs"))
+					w.Write([]byte("422 - JSON Data Type Error, " + err.Error()))
 					return
 				}
-				// validate number of key-value pairs
-				if len(newFood) != len(foodKeysValueTypes) {
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - Error in JSON body --> Incomplete key-value pairs"))
+
+				// struct value validaion with Map interface{} values
+				if ok, err := govalidator.ValidateMap(newFood, foodMapRules); !ok {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("422 - JSON Data Value Error, " + err.Error()))
 					return
 				}
 
@@ -365,6 +379,8 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 				case count == 1:
 					// Edit row if row exist
+
+					fmt.Println("new Food :", newFood)
 					err = editRecord(db, &newFood, params["fid"])
 					if err != nil {
 						w.WriteHeader(http.StatusUnprocessableEntity)
@@ -388,7 +404,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("422 - Please supply " + "food information " + "in JSON format"))
 			}
 		}
-		//---PUT is for creating or updating exiting course---
+		//---PATCH is for patching selective data ---
 		if r.Method == "PATCH" {
 			// vakidate key for parameter key-value
 			if !validAdmin(key[0]) {
@@ -403,11 +419,28 @@ func food(w http.ResponseWriter, r *http.Request) {
 			if err == nil {
 				// parse JSON to object data structure
 				json.Unmarshal(reqBody, &newFood)
-				if len(newFood) == 0 { // empty body
+				// validate the JSON keys and value type in body are correct
+				if ok, err := validateKeysValueTypes(newFood, foodKeyTypeRules); !ok {
 					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - Please supply food information body in JSON format"))
+					w.Write([]byte("422 - JSON Data Type Error, " + err.Error()))
 					return
-				} // check if food item exists; add only if does not exist
+				}
+
+				// build rules dynamically base on interface{} because govalidator requires complete rules
+				buildRules, err := buildVMapTemplate(newFood, foodMapRules)
+				if err != nil {
+					w.WriteHeader(http.StatusUnprocessableEntity)
+					w.Write([]byte("422 - Validation Build Rule Failed, " + err.Error()))
+					return
+				}
+				fmt.Printf("Template : %+v\n", buildRules)
+
+				// struct value validaion with Map interface{} values
+				if ok, err := govalidator.ValidateMap(newFood, *buildRules); !ok {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("422 - JSON Data Value Error, " + err.Error()))
+					return
+				}
 
 				fmt.Printf("newFood : %+v\n", newFood)
 				fmt.Printf("newFood Size: %+v\n", len(newFood))
@@ -429,12 +462,6 @@ func food(w http.ResponseWriter, r *http.Request) {
 					http.Error(w, "404 - Food Id not found", http.StatusNotFound)
 
 				case count == 1:
-					// validate the JSON keys in body are correct
-					if !validateKeysValues(newFood, foodKeysValueTypes) {
-						w.WriteHeader(http.StatusUnprocessableEntity)
-						w.Write([]byte("422 - Error in JSON body map key-value pairs"))
-						return
-					}
 
 					fmt.Printf("New Food : %+v, %+v\n", newFood, params["fid"])
 

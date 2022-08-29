@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/asaskevich/govalidator"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 
@@ -16,11 +17,23 @@ import (
 
 // Note JSON field needs to be exported to encoding/json to enable Encoding/Decoding, so it has to be in CAPITAL
 type userType struct {
-	Name      string `json:"name"`
-	Email     string `json:"email"`
+	Name      string `json:"name" valid:"required,type(string),stringlength(3|30),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)"`
+	Email     string `json:"email" valid:"required,type(string),email,stringlength(1|40)"`
 	AccessKey string `json:"accesskey"`
 	Type      string `json:"type"`
 }
+
+// Map form for Map validation
+var userMapRules = map[string]interface{}{
+	"name":  "required,type(string),stringlength(3|30),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)",
+	"email": "required,type(string),email,stringlength(1|40)",
+}
+
+// Note no space on validate struct tag allowed
+// type userValid struct {
+// 	Name  string `json:"name" validate:"required,min=3,max=30"`
+// 	Email string `json:"email" validate:"required,email,max=40"`
+// }
 
 type usersType struct {
 	Count int        `json:"count"`
@@ -33,12 +46,6 @@ const (
 	ADMIN = "1" // ADMIN == 1
 	USER  = "2" // USER == 2
 )
-
-// Define JSON keys and type for JSON validation
-var userKeysValueTypes = map[string]string{
-	"name":  "string",
-	"email": "string",
-}
 
 // users is the handler for "/api/v1/users" resource
 func users(w http.ResponseWriter, r *http.Request) {
@@ -221,11 +228,16 @@ func user(w http.ResponseWriter, r *http.Request) {
 			if err == nil {
 				// parse JSON to object data structure, note newUser has either a name or email or both
 				json.Unmarshal(reqBody, &newUser)
-				if newUser.Name == "" || newUser.Email == "" { // empty name and email
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - Please supply user information in JSON format"))
+
+				// struct validaion with struct tag
+				if ok, err := govalidator.ValidateStruct(newUser); !ok {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("422 - Data Validation Failed: " + err.Error()))
 					return
-				} // check if food item exists; add only if food item does not exist
+				}
+				// trims leading and trailing spaces
+				//newUser.Name = govalidator.Trim(newUser.Name, "")
+
 				fmt.Printf("New User : %+v\n", newUser)
 
 				// check if there is a row for this record with the New User email ID
@@ -286,11 +298,11 @@ func user(w http.ResponseWriter, r *http.Request) {
 				json.Unmarshal(reqBody, &newUserReq)
 
 				fmt.Printf("New User Request: %+v\n", newUserReq)
-
-				// validate JSON data is correct
-				if !validateKeysValues(newUserReq, userKeysValueTypes) {
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - Error in JSON body map key-value"))
+				// validator
+				// struct validaion with struct tag
+				if ok, err := govalidator.ValidateMap(newUserReq, userMapRules); !ok {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("422 - Data Validation Failed: " + err.Error()))
 					return
 				}
 

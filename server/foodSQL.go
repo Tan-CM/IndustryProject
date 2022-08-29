@@ -14,7 +14,6 @@ import (
 var errEmptyRow = errors.New("sql: Empty Row")
 var errInvalidID = errors.New("foodMap: Invalid ID")
 var errAlreadyUsedID = errors.New("foodMap: ID is already used")
-var errInvalidMapKey = errors.New("Invalid Map Key in Body")
 
 // SQL read cache for food data, adding this cache greatlyspeeds up HTTP GET operations, since SQL read is skipped.
 var foodMap = map[string]productType{}
@@ -177,12 +176,14 @@ func editRecord(db *sql.DB, f *mapInterface, ID string) error {
 	defer m.Unlock()
 
 	// Check if the New ID is to be updated is already used (except its own ID)
-	if v, ok := (*f)["id"]; ok {
-		fmt.Printf("ID here : %+v\n", v)
-		if _, ok := foodMap[v.(string)]; ok && v.(string) != ID {
-			fmt.Printf("Error JSON ID Error - %+v is already used\n", v)
-			return errAlreadyUsedID
-		}
+	v, ok := (*f)["Id"]
+	if !ok {
+		return errInvalidID
+	}
+	fmt.Printf("ID here : %+v\n", v)
+	if _, ok := foodMap[v.(string)]; ok && v.(string) != ID {
+		fmt.Printf("Error JSON ID Error - %+v is already used\n", v)
+		return errAlreadyUsedID
 	}
 
 	// create the sql query to update record
@@ -190,23 +191,23 @@ func editRecord(db *sql.DB, f *mapInterface, ID string) error {
 	// row, err := db.Query(query)
 	// Note that unmarshalled JSON for float is float64
 	row, err := db.Query("UPDATE foods SET ID=?, Category=?, Name=?, Weight=?, Energy=?,Protein=?, FatTotal=?, FatSat=?, Fibre=?, Carb=?, Cholesterol=?, Sodium=? WHERE Id=?",
-		(*f)["id"], (*f)["category"], (*f)["name"], (*f)["weight"], (*f)["energy"], (*f)["protein"], (*f)["fatTotal"], (*f)["fatSat"], (*f)["fibre"], (*f)["carb"], (*f)["cholesterol"], (*f)["sodium"], ID)
+		(*f)["Id"], (*f)["Category"], (*f)["Name"], (*f)["Weight"], (*f)["Energy"], (*f)["Protein"], (*f)["FatTotal"], (*f)["FatSat"], (*f)["Fibre"], (*f)["Carb"], (*f)["Cholesterol"], (*f)["Sodium"], ID)
 
 	if err != nil {
 		panic(err.Error())
 	}
 
 	// get updated food record from DB
-	updatedFood, err := getOneRecordDB(db, (*f)["id"].(string))
+	updatedFood, err := getOneRecordDB(db, (*f)["Id"].(string))
 	if err != nil {
 		panic(err.Error())
 	}
 
 	// Check if the ID is also updated
-	if (*f)["id"].(string) != ID {
+	if (*f)["Id"].(string) != ID {
 		// remove the old key and update with new keys in foodMap
 		delete(foodMap, ID)
-		foodMap[(*f)["id"].(string)] = *updatedFood
+		foodMap[(*f)["Id"].(string)] = *updatedFood
 	} else {
 		foodMap[ID] = *updatedFood
 	}

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
@@ -67,6 +68,10 @@ func init() {
 		//DBName: os.Getenv("SQL_DB"),
 		DBName: "userDB",
 	}
+
+	//	govalidator.SetFieldsRequiredByDefault(true)
+	// to differential nil and zero value
+	govalidator.SetNilPtrAllowedByRequired(true)
 }
 
 // main() main function to start the http multiplexer
