@@ -69,6 +69,22 @@ var foodMapRules = map[string]interface{}{
 	"Sodium":      "range(0|5000)",
 }
 
+// Map form for Map validation (govalidator)
+// map is for POST, PUT and PATCH so required has to be removed
+var foodNoIdMapRules = map[string]interface{}{
+	"Category":    "required,type(string),stringlength(3|20),matches(^[a-zA-Z]+$)",
+	"Name":        "required,type(string),stringlength(3|60),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)",
+	"Weight":      "required,type(float64),range(0|1000)",
+	"Energy":      "required,type(float64),range(0|1000)",
+	"Protein":     "type(float64),range(0|100)", // required removed to accept zero value
+	"FatTotal":    "type(float64),range(0|100)",
+	"FatSat":      "type(float64),range(0|100)",
+	"Fibre":       "type(float64),range(0|100)",
+	"Carb":        "type(float64),range(0|500)",
+	"Cholesterol": "type(float64),range(0|1000)",
+	"Sodium":      "type(float64),range(0|5000)",
+}
+
 func foodCacheInit() {
 	db, err := sql.Open("mysql", cfg.FormatDSN())
 	// handle error
@@ -180,7 +196,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println("fid =", params["fid"])
 
-		// find string with {PrefixId*} for group ID search
+		// find string with {PrefixId*} for group ID search, using backtick `*` for raw character instead of \\*
 		pattern := regexp.MustCompile("[a-zA-Z]+[0-9]*\\*")
 		IdFound := pattern.FindString(params["fid"])
 
@@ -277,14 +293,30 @@ func food(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			// read the string sent to the service
-			var newFood productType
+			var newFood mapInterface
 			reqBody, err := ioutil.ReadAll(r.Body)
 			if err == nil {
 				// parse JSON to object data structure
 				json.Unmarshal(reqBody, &newFood)
+				fmt.Printf("UnMarshall :%+v\n", newFood)
+
+				// validate the JSON Num of keys-value in body are correct
+				if len(newFood) != len(foodNoIdMapRules) {
+					w.WriteHeader(http.StatusUnprocessableEntity)
+					w.Write([]byte("422 - Incompatible or Incomplete JSON Data Error"))
+					return
+				}
+
+				// validate the JSON keys and value type in body are correct
+				if ok, err := validateKeysValueTypes(newFood, foodKeyTypeRules); !ok {
+					w.WriteHeader(http.StatusUnprocessableEntity)
+					w.Write([]byte("422 - JSON Data Type Error, " + err.Error()))
+					return
+				}
 
 				// struct value validaion with struct tag
-				if ok, err := govalidator.ValidateStruct(newFood); !ok {
+				if ok, err := govalidator.ValidateMap(newFood, foodNoIdMapRules); !ok {
+					//if ok, err := govalidator.ValidateStruct(newFood); !ok {
 					w.WriteHeader(http.StatusBadRequest)
 					w.Write([]byte("422 - JSON Data Value Error, " + err.Error()))
 					return
@@ -298,13 +330,26 @@ func food(w http.ResponseWriter, r *http.Request) {
 					w.Write([]byte("500 - Internal Server Error"))
 					return
 				}
-
 				switch {
 				case count == 0:
-					insertRecord(db, &newFood, params["fid"])
+					var food productType
+					_, err := updateFoodMapToStruct(&food, newFood, foodMapRules)
+					if err != nil {
+						w.WriteHeader(http.StatusBadRequest)
+						w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
+					}
+
+					err = insertRecord(db, food, params["fid"])
+					if err != nil {
+						w.WriteHeader(http.StatusBadRequest)
+						w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
+						return
+					}
 					w.WriteHeader(http.StatusCreated)
-					w.Write([]byte("201 - Food item added: " + params["fid"] + " Category: " + newFood.Category +
-						" Name: " + newFood.Name))
+					w.Write([]byte("201 - Food item added: " + params["fid"] + " Category: " + newFood["Category"].(string) +
+						" Name: " + newFood["Name"].(string)))
+
+					fmt.Println("Food :", newFood)
 
 				case count == 1:
 					w.WriteHeader(http.StatusConflict) // food id key already exist
@@ -343,6 +388,13 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 				fmt.Printf("New Food JSON : %+v\n", newFood)
 
+				// validate the JSON Num of keys-value in body are correct
+				if len(newFood) != len(foodMapRules) {
+					w.WriteHeader(http.StatusUnprocessableEntity)
+					w.Write([]byte("422 - Incompatible or Incomplete JSON Data Error"))
+					return
+				}
+
 				// validate the JSON keys and value type in body are correct
 				if ok, err := validateKeysValueTypes(newFood, foodKeyTypeRules); !ok {
 					w.WriteHeader(http.StatusUnprocessableEntity)
@@ -379,12 +431,18 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 				case count == 1:
 					// Edit row if row exist
+					var food productType
+					_, err := updateFoodMapToStruct(&food, newFood, foodMapRules)
+					if err != nil {
+						w.WriteHeader(http.StatusBadRequest)
+						w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
+					}
 
 					fmt.Println("new Food :", newFood)
-					err = editRecord(db, &newFood, params["fid"])
+					err = editRecord(db, newFood["Id"].(string), food, params["fid"])
 					if err != nil {
 						w.WriteHeader(http.StatusUnprocessableEntity)
-						w.Write([]byte("422 - JSON Body Error - New Id is already used"))
+						w.Write([]byte("422 - JSON Body Error: " + err.Error()))
 						return
 					}
 					w.WriteHeader(http.StatusAccepted)
@@ -454,9 +512,6 @@ func food(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				fmt.Println("Count :", count)
-				fmt.Println("Product", newFood)
-
 				switch {
 				case count == 0:
 					http.Error(w, "404 - Food Id not found", http.StatusNotFound)
@@ -466,15 +521,10 @@ func food(w http.ResponseWriter, r *http.Request) {
 					fmt.Printf("New Food : %+v, %+v\n", newFood, params["fid"])
 
 					// Edit row if row exist
-					err := updateRecord(db, newFood, params["fid"])
+					err := updateRecord(db, newFood, *buildRules, params["fid"])
 					if err != nil {
-						if err == errAlreadyUsedID {
-							w.WriteHeader(http.StatusUnprocessableEntity)
-							w.Write([]byte("422 - JSON Body Error - New Id is already used"))
-						} else {
-							w.WriteHeader(http.StatusUnprocessableEntity)
-							w.Write([]byte("422 - Please supply updated food information body in JSON format"))
-						}
+						w.WriteHeader(http.StatusUnprocessableEntity)
+						w.Write([]byte("422 - JSON Body Error, " + err.Error()))
 						return
 					}
 					w.WriteHeader(http.StatusAccepted)
@@ -493,4 +543,50 @@ func food(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+// updateFoodMapToStruct extract the data in the Map and convert to struct type
+// It checks for the validity of the key
+// return (number of key found, err)
+// Update p based fields of food interface, using foodFieldMap as key reference check
+func updateFoodMapToStruct(p *productType, food mapInterface, foodFieldMap mapInterface) (int, error) {
+
+	var count int
+
+	// Note "Id" key if present is also checked by not pu into p
+	for k, v := range food {
+		if _, ok := foodFieldMap[k]; !ok {
+			return count, fmt.Errorf("invalid Key Used : (%v)", k)
+		}
+		count++
+		fmt.Println("Key :", k)
+		switch k {
+		case "Category":
+			p.Category = v.(string)
+		case "Name":
+			p.Name = v.(string)
+		case "Weight":
+			p.Weight = (float32)(v.(float64))
+		case "Energy":
+			p.Energy = (float32)(v.(float64))
+		case "Protein":
+			p.Protein = (float32)(v.(float64))
+		case "FatTotal":
+			p.FatTotal = (float32)(v.(float64))
+		case "FatSat":
+			p.FatSat = (float32)(v.(float64))
+		case "Fibre":
+			p.Fibre = (float32)(v.(float64))
+		case "Carb":
+			p.Carb = (float32)(v.(float64))
+		case "Cholesterol":
+			p.Cholesterol = (float32)(v.(float64))
+		case "Sodium":
+			p.Sodium = (float32)(v.(float64))
+			// default:
+			// 	return count, fmt.Errorf("invalid Key Used : (%v)", k)
+		}
+
+	}
+	return count, nil
 }

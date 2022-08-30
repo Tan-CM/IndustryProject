@@ -65,7 +65,7 @@ func buildVMapTemplate(mapX map[string]interface{}, rules map[string]interface{}
 		if v, ok := foodMapRules[k]; ok {
 			template[k] = v
 		} else {
-			return &template, errInvalidMapKey
+			return &template, fmt.Errorf("validation Failed: Invalid key : (%v)", k)
 		}
 	}
 	return &template, nil

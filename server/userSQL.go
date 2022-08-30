@@ -10,7 +10,8 @@ import (
 )
 
 var errDuplicateID = errors.New("Duplicate ID")
-var errJSONMapKeys = errors.New("Errors in JSON Map Keys")
+
+//var errJSONMapKeys = errors.New("Errors in JSON Map Keys")
 
 // Use this as a fast cache to verify the user key
 // Map only has the user type information
@@ -218,27 +219,6 @@ func userDeleteRecord(db *sql.DB, ID string) {
 
 	fmt.Println("Delete Successful")
 }
-
-// // EditRecord edits the record of the current table based on the primary key ID with title
-// func EditRecord(db *sql.DB, p *productType, ID string) {
-// 	m.Lock()
-// 	defer m.Unlock()
-
-// 	// create the sql query to update record
-// 	// query := fmt.Sprintf("UPDATE foods SET Title='%s' WHERE ID='%s'", title, ID)
-// 	// row, err := db.Query(query)
-// 	row, err := db.Query("UPDATE foods SET Category=?, Name=?, Weight=?, Energy=?,Protein=?, FatTotal=?, FatSat=?, Fibre=?, Carb=?, Cholesterol=?, Sodium=? WHERE Id=?", p.Category, p.Name, p.Weight, p.Energy, p.Protein, p.FatTotal, p.FatSat, p.Fibre, p.Carb, p.Cholesterol, p.Sodium, ID)
-
-// 	if err != nil {
-// 		panic(err.Error())
-// 	}
-// 	defer row.Close()
-
-// 	// Update/Add Read Cache with Edited record
-// 	foodMap[ID] = *p
-
-// 	fmt.Println("Edit Successful")
-// }
 
 // InsertRecord instead a row record into the current table based on the primary key and title
 func userInsertRecord(db *sql.DB, p *userType) {
