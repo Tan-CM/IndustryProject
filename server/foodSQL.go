@@ -21,13 +21,13 @@ var errIncompleteMapStruct = errors.New("foodMap:  Incomplete Map structure")
 var foodMap = map[string]productType{}
 
 // Mutex for critical section of SQL write to DB and cache
-var m = sync.Mutex{}
+var m1 = sync.Mutex{}
 
 // GetProductRecordsInit gets all the rows to the Read Cache map
 func getProductRecordsInit(db *sql.DB) error {
 
-	m.Lock()
-	defer m.Unlock()
+	m1.Lock()
+	defer m1.Unlock()
 
 	// query to get all rows of table (persons) of my_db
 	rows, err := db.Query("Select * FROM Foods")
@@ -151,8 +151,8 @@ func getRowCount(db *sql.DB, ID string) (int, error) {
 
 // DeleteRecord deletes a record from the current table using the ID primary key
 func deleteRecord(db *sql.DB, ID string) {
-	m.Lock()
-	defer m.Unlock()
+	m1.Lock()
+	defer m1.Unlock()
 
 	// create the sql query to delete with primary key
 	// Note deleting a non-existent record is considered as deleted, so will always passed
@@ -174,8 +174,8 @@ func deleteRecord(db *sql.DB, ID string) {
 
 // EditRecord edits the record of the current table based on the primary key ID with title
 func editRecord(db *sql.DB, newID string, f productType, oldID string) error {
-	m.Lock()
-	defer m.Unlock()
+	m1.Lock()
+	defer m1.Unlock()
 
 	if len(newID) == 0 {
 		return errInvalidID
@@ -218,8 +218,8 @@ func editRecord(db *sql.DB, newID string, f productType, oldID string) error {
 }
 
 func insertRecord(db *sql.DB, fd productType, ID string) error {
-	m.Lock()
-	defer m.Unlock()
+	m1.Lock()
+	defer m1.Unlock()
 
 	row, err := db.Query("INSERT INTO foods VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		ID, fd.Category, fd.Name, fd.Weight, fd.Energy, fd.Protein, fd.FatTotal, fd.FatSat,
@@ -239,8 +239,8 @@ func insertRecord(db *sql.DB, fd productType, ID string) error {
 
 // updateRecord with dynamic JSON map
 func updateRecord(db *sql.DB, food mapInterface, keyRules mapInterface, oldID string) error {
-	m.Lock()
-	defer m.Unlock()
+	m1.Lock()
+	defer m1.Unlock()
 
 	// Initialise the food record first with original values
 	foodTemp, err := getOneRecordDB(db, oldID)

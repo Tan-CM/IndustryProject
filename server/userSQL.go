@@ -5,9 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sync"
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+var m2 = sync.Mutex{}
 
 var errDuplicateID = errors.New("Duplicate ID")
 
@@ -66,8 +69,8 @@ func verifiedUser(key string, Id string) bool {
 
 func GetUserRecordsInit(db *sql.DB) error {
 
-	m.Lock()
-	defer m.Unlock()
+	m2.Lock()
+	defer m2.Unlock()
 
 	// query to get all rows of table (persons) of my_db
 	rows, err := db.Query("Select * FROM Users")
@@ -107,8 +110,8 @@ func GetUserRecordsInit(db *sql.DB) error {
 
 // // GetRecords gets all the rows of the current table and return as a slice of map
 func GetUsersRecords(db *sql.DB) (*usersType, error) {
-	m.Lock()
-	defer m.Unlock()
+	m2.Lock()
+	defer m2.Unlock()
 
 	// query to get all rows of table (persons) of my_db
 	rows, err := db.Query("Select * FROM Users")
@@ -194,8 +197,8 @@ func userGetRowCount(db *sql.DB, ID string) (int, error) {
 
 // DeleteRecord deletes a record from the current table using the ID primary key
 func userDeleteRecord(db *sql.DB, ID string) {
-	m.Lock()
-	defer m.Unlock()
+	m2.Lock()
+	defer m2.Unlock()
 
 	// create the sql query to delete with primary key
 	// Note deleting a non-existent record is considered as deleted, so will always passed
@@ -222,8 +225,8 @@ func userDeleteRecord(db *sql.DB, ID string) {
 
 // InsertRecord instead a row record into the current table based on the primary key and title
 func userInsertRecord(db *sql.DB, p *userType) {
-	m.Lock()
-	defer m.Unlock()
+	m2.Lock()
+	defer m2.Unlock()
 
 	// create the sql query to insert record
 	// note the quote for string
@@ -249,8 +252,8 @@ func userInsertRecord(db *sql.DB, p *userType) {
 }
 
 func userUpdateRecord(db *sql.DB, user mapInterface, ID string) error {
-	m.Lock()
-	defer m.Unlock()
+	m2.Lock()
+	defer m2.Unlock()
 
 	// Read the old record first
 	userTemp, err := userGetOneRecord(db, ID)
