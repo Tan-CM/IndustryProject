@@ -59,7 +59,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// vakidate key for parameter key-value
-	if !validAdmin(key[0]) {
+	if !userIsAdmin(key[0]) {
 		// w.WriteHeader(http.StatusNotFound)
 		// w.Write([]byte("401 - Invalid key"))
 		http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
@@ -79,7 +79,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 	// defer the close till after the main function has finished executing
 	defer db.Close()
 
-	bufferMap, err := GetUsersRecords(db)
+	bufferMap, err := userGetRecords(db)
 
 	if err != nil {
 		http.Error(w, "SQL DB Read Error", http.StatusInternalServerError)
@@ -139,7 +139,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(key[0])
 
 		// validate key is registered
-		if !validRegUser(key[0]) {
+		if !userIsRegistered(key[0]) {
 			http.Error(w, "401 - Unauthorised Access Key", http.StatusNotFound)
 			return
 		}
@@ -176,7 +176,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		// case count == 1
 		// if not admin key, then user authentication is needed
-		if !validAdmin(key[0]) && !verifiedUser(key[0], params["uid"]) {
+		if !userIsAdmin(key[0]) && !verifiedUser(key[0], params["uid"]) {
 			http.Error(w, "401 - Unauthorized Access", http.StatusUnauthorized)
 			return
 		}
@@ -199,7 +199,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 	// Delete may have a body but not encouraged, safest not to use
 	if r.Method == "DELETE" {
 		// count == 1
-		if validAdmin(key[0]) {
+		if userIsAdmin(key[0]) {
 			userDeleteRecord(db, params["uid"])
 			w.WriteHeader(http.StatusAccepted)
 			w.Write([]byte("202 - User deleted: " + params["uid"]))
@@ -306,7 +306,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				if validAdmin(key[0]) {
+				if userIsAdmin(key[0]) {
 					// Edit row if row exist
 					//if err := userUpdateRecord(db, newUser, params["uid"]); err != nil {
 					if err := userUpdateRecord(db, newUserReq, params["uid"]); err != nil {

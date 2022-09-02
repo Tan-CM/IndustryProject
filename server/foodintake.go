@@ -24,17 +24,6 @@ type nutriValue struct {
 	Sodium      float32 `json:"sodium"`
 }
 
-type dailyNutrMetric struct {
-	Energy      float32 `json:"energy"`
-	Protein     float32 `json:"protein"`
-	FatTotal    float32 `json:"fatTotal"`
-	FatSat      float32 `json:"fatSat"`
-	Fibre       float32 `json:"fibre"`
-	Carb        float32 `json:"carb"`
-	Cholesterol float32 `json:"cholesterol"`
-	Sodium      float32 `json:"sodium"`
-}
-
 // Recommended Max Daily Intake for Singapore (www.healthhub.sg)
 var foodDailyLimit = map[string]nutriValue{
 	"MALE": {
@@ -70,7 +59,7 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// vakidate key for parameter key-value
-	if !validRegUser(key[0]) {
+	if !userIsRegistered(key[0]) {
 		// w.WriteHeader(http.StatusNotFound)
 		// w.Write([]byte("401 - Invalid key"))
 		http.Error(w, "401 - Invalid key", http.StatusNotFound)
@@ -119,19 +108,6 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("foodlist : %#v\n", foodlist)
 
-	var err error
-
-	// db, err := sql.Open("mysql", cfg.FormatDSN())
-
-	// // handle error
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
-
-	var food productType
-	// if Id pattern is not found, then use the ID directly
-	bufferMap := &map[string]productType{}
-
 	// number of ID matches the number of valid ID and values
 	if count != len(foodlist) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -147,8 +123,8 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 	case "VALUE":
 
 		for k, v := range foodlist {
-			bufferMap, err = getOneRecord(k) // get food data
-			food = (*bufferMap)[k]
+			food, err := foodGetOneRecord(k) // get food data
+			//food = (*bufferMap)[k]
 
 			fmt.Printf("food : %#v, v: %+v\n", food, v)
 
@@ -192,8 +168,8 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 
 		// compute total nutrient value
 		for k, v := range foodlist {
-			bufferMap, err = getOneRecord(k) // get food data
-			food = (*bufferMap)[k]
+			food, err := foodGetOneRecord(k) // get food data
+			//food = (*bufferMap)[k]
 
 			fmt.Printf("food : %#v, v: %+v\n", food, v)
 

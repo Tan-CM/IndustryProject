@@ -13,18 +13,44 @@ import (
 
 var errEmptyRow = errors.New("sql: Empty Row")
 var errInvalidID = errors.New("foodMap: Invalid ID")
+var errIllegalID = errors.New("foodMap: Illegal Zero ID")
 var errInvalidKey = errors.New("foodMap: Invalid Key")
 var errAlreadyUsedID = errors.New("foodMap: ID is already used")
 var errIncompleteMapStruct = errors.New("foodMap:  Incomplete Map structure")
 
 // SQL read cache for food data, adding this cache greatlyspeeds up HTTP GET operations, since SQL read is skipped.
-var foodMap = map[string]productType{}
+var foodMap = map[string]foodType{}
 
 // Mutex for critical section of SQL write to DB and cache
 var m1 = sync.Mutex{}
 
-// GetProductRecordsInit gets all the rows to the Read Cache map
-func getProductRecordsInit(db *sql.DB) error {
+func foodCacheInit() {
+	db, err := sql.Open("mysql", cfg.FormatDSN())
+	// handle error
+	if err != nil {
+		panic(err.Error()) // panic because server cannot function
+	}
+	err = foodGetRecordsInit(db)
+	if err != nil {
+		panic(err.Error()) // panic because server cannot function
+	}
+}
+
+// validate foodMap Id, 2 possible outcome, illegal ID or invalidID
+func foodValidateId(Id string) error {
+	if len(Id) == 0 {
+		return errIllegalID
+	}
+
+	if _, ok := foodMap[Id]; !ok {
+		fmt.Printf("invalid ID (%v)", Id)
+		return fmt.Errorf("invalid foodMap ID (%v)", Id)
+	}
+	return nil
+}
+
+// foodGetRecordsInit gets all the rows to the Read Cache map
+func foodGetRecordsInit(db *sql.DB) error {
 
 	m1.Lock()
 	defer m1.Unlock()
@@ -40,12 +66,12 @@ func getProductRecordsInit(db *sql.DB) error {
 
 	var id string
 
-	// extract row by row to create slice of productType
+	// extract row by row to create slice of foodType
 	for rows.Next() {
 		// map this type to the record in the table
-		var product productType
-		err = rows.Scan(&id, &product.Category, &product.Name, &product.Weight, &product.Energy, &product.Protein,
-			&product.FatTotal, &product.FatSat, &product.Fibre, &product.Carb, &product.Cholesterol, &product.Sodium)
+		var food foodType
+		err = rows.Scan(&id, &food.Category, &food.Name, &food.Weight, &food.Energy, &food.Protein,
+			&food.FatTotal, &food.FatSat, &food.Fibre, &food.Carb, &food.Cholesterol, &food.Sodium)
 
 		if err != nil {
 			fmt.Println("Error reading rows from SQL Food!!!")
@@ -54,7 +80,7 @@ func getProductRecordsInit(db *sql.DB) error {
 		}
 
 		// initialise map
-		foodMap[id] = product
+		foodMap[id] = food
 	}
 
 	//fmt.Printf("%+v", foodMap)
@@ -62,41 +88,39 @@ func getProductRecordsInit(db *sql.DB) error {
 }
 
 // GetRecords gets all the rows of the current table and return as a slice of map
-func getProductRecords() (*map[string]productType, error) {
+func foodGetRecords() (*map[string]foodType, error) {
 	return &foodMap, nil
 }
 
 // GetRecords gets all the rows of the current table and return as a slice of map
-func getPrefixedRecords(prefix string) (*map[string]productType, error) {
+func foodGetPrefixedRecords(prefix string) (*map[string]foodType, error) {
 
 	// create a food map to be populated to match search
-	selectFoodMap := map[string]productType{}
+	selectFoodMap := map[string]foodType{}
 	for k, v := range foodMap {
 		if strings.HasPrefix(k, prefix) {
 			selectFoodMap[k] = v
 		}
 	}
 
-	if len(selectFoodMap) != 0 {
-		return &selectFoodMap, nil
+	if len(selectFoodMap) == 0 {
+		return &selectFoodMap, fmt.Errorf("invalid prefix ID (%v)", prefix)
 	}
-	return &selectFoodMap, errInvalidID
+
+	return &selectFoodMap, nil
 }
 
 // GetOneRecord checks if there is a existence of a record based on the ID primary key
 // If there is a record, it returns a map of the record key:title pair
 // error = nil, there is a record
 // error = emptyRow, there is no record
-func getOneRecord(ID string) (*map[string]productType, error) {
-
-	foodMapX := map[string]productType{}
+func foodGetOneRecord(ID string) (*foodType, error) {
 
 	// check for validity of ID
 	if v, ok := foodMap[ID]; ok {
-		foodMapX[ID] = v
-		return &foodMapX, nil
+		return &v, nil
 	} else {
-		return &foodMapX, errInvalidID
+		return &v, fmt.Errorf("invalid ID (%v)", ID)
 	}
 
 }
@@ -105,7 +129,7 @@ func getOneRecord(ID string) (*map[string]productType, error) {
 // If there is a record, it returns a map of the record key:title pair
 // error = nil, there is a record
 // error = emptyRow, there is no record
-func getOneRecordDB(db *sql.DB, ID string) (*productType, error) {
+func foodGetOneRecordDB(db *sql.DB, ID string) (*foodType, error) {
 
 	row, err := db.Query("Select * FROM foods where ID=?", ID)
 	if err != nil {
@@ -113,7 +137,7 @@ func getOneRecordDB(db *sql.DB, ID string) (*productType, error) {
 	}
 	defer row.Close()
 
-	var food productType
+	var food foodType
 	var dummyId string
 
 	if row.Next() {
@@ -129,7 +153,7 @@ func getOneRecordDB(db *sql.DB, ID string) (*productType, error) {
 }
 
 // Returns the number of rows that match the ID
-func getRowCount(db *sql.DB, ID string) (int, error) {
+func foodGetRowCount(db *sql.DB, ID string) (int, error) {
 
 	row, err := db.Query("Select count(*) FROM foods where ID=?", ID)
 	if err != nil {
@@ -150,15 +174,10 @@ func getRowCount(db *sql.DB, ID string) (int, error) {
 }
 
 // DeleteRecord deletes a record from the current table using the ID primary key
-func deleteRecord(db *sql.DB, ID string) {
+func foodDeleteRecord(db *sql.DB, ID string) {
 	m1.Lock()
 	defer m1.Unlock()
 
-	// create the sql query to delete with primary key
-	// Note deleting a non-existent record is considered as deleted, so will always passed
-
-	//query := fmt.Sprintf("DELETE FROM foods WHERE ID='%s'", ID)
-	//row, err := db.Query(query)
 	row, err := db.Query("DELETE FROM foods WHERE ID=?", ID)
 
 	if err != nil {
@@ -173,22 +192,25 @@ func deleteRecord(db *sql.DB, ID string) {
 }
 
 // EditRecord edits the record of the current table based on the primary key ID with title
-func editRecord(db *sql.DB, newID string, f productType, oldID string) error {
+func foodEditRecord(db *sql.DB, newID string, f foodType, oldID string) error {
 	m1.Lock()
 	defer m1.Unlock()
 
-	if len(newID) == 0 {
-		return errInvalidID
+	// Check if the New ID is to be updated is already used (except its own ID)
+	if err := foodValidateId(newID); err == nil {
+		if newID != oldID {
+			return fmt.Errorf("new ID is in use (%v)", newID)
+		}
+	} else {
+		// illegal Id, Id=""
+		if err == errIllegalID {
+			return err
+		}
 	}
 
-	if _, ok := foodMap[newID]; ok && newID != oldID {
-		fmt.Printf("Error JSON new ID Error - %+v is already used\n", newID)
-		return fmt.Errorf("New ID (%v) is already in Used", newID)
-	}
-
-	if _, ok := foodMap[oldID]; !ok {
-		fmt.Printf("Error JSON old ID Error - %+v is invalid\n", oldID)
-		return fmt.Errorf("ID (%v) is invalid", oldID)
+	// validate tha old ID exist before update
+	if err := foodValidateId(oldID); err != nil {
+		return fmt.Errorf("invalid Old ID (%v)", oldID)
 	}
 
 	row, err := db.Query("UPDATE foods SET ID=?, Category=?, Name=?, Weight=?, Energy=?,Protein=?, FatTotal=?, FatSat=?, Fibre=?, Carb=?, Cholesterol=?, Sodium=? WHERE Id=?",
@@ -199,25 +221,19 @@ func editRecord(db *sql.DB, newID string, f productType, oldID string) error {
 	}
 	defer row.Close()
 
-	// get updated food record from DB
-	updatedFood, err := getOneRecordDB(db, newID)
-	if err != nil {
-		panic(err.Error())
-	}
-
 	// Check if the ID is also updated
 	if newID != oldID {
 		// remove the old key and update with new keys in foodMap
 		delete(foodMap, oldID)
 	}
-	foodMap[newID] = *updatedFood
+	foodMap[newID] = f
 
 	fmt.Println("Edit Successful")
 
 	return nil
 }
 
-func insertRecord(db *sql.DB, fd productType, ID string) error {
+func foodInsertRecord(db *sql.DB, fd foodType, ID string) error {
 	m1.Lock()
 	defer m1.Unlock()
 
@@ -238,14 +254,14 @@ func insertRecord(db *sql.DB, fd productType, ID string) error {
 }
 
 // updateRecord with dynamic JSON map
-func updateRecord(db *sql.DB, food mapInterface, keyRules mapInterface, oldID string) error {
+func foodUpdateRecord(db *sql.DB, food mapInterface, keyRules mapInterface, oldID string) error {
 	m1.Lock()
 	defer m1.Unlock()
 
 	// Initialise the food record first with original values
-	foodTemp, err := getOneRecordDB(db, oldID)
+	foodTemp, err := foodGetOneRecord(oldID)
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 
 	// Initialise with current ID
@@ -255,11 +271,15 @@ func updateRecord(db *sql.DB, food mapInterface, keyRules mapInterface, oldID st
 	// Check if the New ID is to be updated is already used (except its own ID)
 	if v, ok := food["Id"]; ok {
 		newId = v.(string)
-
-		// check if new Id is used excluding the current Id
-		if _, ok := foodMap[newId]; ok && newId != oldID {
-			fmt.Printf("Error ID - %+v is already used\n", v)
-			return fmt.Errorf("ID (%v) is already in Used", newId)
+		if err := foodValidateId(newId); err == nil {
+			if newId != oldID {
+				return fmt.Errorf("new ID is in use (%v)", newId)
+			}
+		} else {
+			// illegal Id, Id=""
+			if err == errIllegalID {
+				return err
+			}
 		}
 	}
 

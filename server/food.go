@@ -16,7 +16,7 @@ import (
 )
 
 // Note JSON field needs to be exported to encoding/json to enable Encoding/Decoding, so it has to be in CAPITAL
-type productType struct {
+type foodType struct {
 	//	Id          string  `json:"id"`
 	Category    string  `json:"category" valid:"required,stringlength(3|20),matches(^[a-zA-Z]+$)"`
 	Name        string  `json:"name" valid:"required,stringlength(3|60),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)"`
@@ -32,8 +32,8 @@ type productType struct {
 }
 
 type foodListType struct {
-	Count   int                     `json:"count"`
-	FoodMap *map[string]productType `json:"foodMap"`
+	Count   int                  `json:"count"`
+	FoodMap *map[string]foodType `json:"foodMap"`
 }
 
 // Define JSON keys and type for JSON validation for interface{} is float64
@@ -85,28 +85,6 @@ var foodNoIdMapRules = map[string]interface{}{
 	"Sodium":      "type(float64),range(0|5000)",
 }
 
-func foodCacheInit() {
-	db, err := sql.Open("mysql", cfg.FormatDSN())
-	// handle error
-	if err != nil {
-		panic(err.Error()) // panic because server cannot function
-	}
-	err = getProductRecordsInit(db)
-	if err != nil {
-		panic(err.Error()) // panic because server cannot function
-	}
-
-	db, err = sql.Open("mysql", cfgUser.FormatDSN())
-	// handle error
-	if err != nil {
-		panic(err.Error()) // panic because server cannot function
-	}
-	err = GetUserRecordsInit(db)
-	if err != nil {
-		panic(err.Error()) // panic because server cannot function
-	}
-}
-
 // home is the handler for "/api/v1/" resource
 func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("testing")
@@ -123,7 +101,7 @@ func allfoods(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !validAdmin(key[0]) {
+	if !userIsAdmin(key[0]) {
 		// w.WriteHeader(http.StatusNotFound)
 		// w.Write([]byte("401 - Invalid key"))
 		http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
@@ -133,7 +111,7 @@ func allfoods(w http.ResponseWriter, r *http.Request) {
 	var foodList foodListType
 	var err error
 
-	foodList.FoodMap, err = getProductRecords()
+	foodList.FoodMap, err = foodGetRecords()
 
 	if err != nil {
 		http.Error(w, "SQL DB Read Error", http.StatusInternalServerError)
@@ -144,7 +122,6 @@ func allfoods(w http.ResponseWriter, r *http.Request) {
 	//fmt.Printf("BufferMap :%+v\n", *bufferMap)
 
 	// returns all the foods in JSON and send to IO Response writer
-	//err = (* productTypeInterface)(productList).ToJSON(w)
 	err = json.NewEncoder(w).Encode(foodList)
 
 	if err != nil {
@@ -186,8 +163,8 @@ func food(w http.ResponseWriter, r *http.Request) {
 	// Get does not have a body so only header
 	if r.Method == "GET" {
 		fmt.Println("userMap :", userMap)
-		// vakidate key for parameter key-value
-		if !validRegUser(key[0]) {
+		// vakidate key for for registered users
+		if !userIsRegistered(key[0]) {
 			// w.WriteHeader(http.StatusNotFound)
 			// w.Write([]byte("401 - Invalid key"))
 			http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
@@ -203,18 +180,19 @@ func food(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("a: %+v", IdFound)
 
 		// if Id pattern is not found, then use the ID directly
-		bufferMap := &map[string]productType{}
-		var err error
+		bufferMap := map[string]foodType{}
+		//var err error
 
 		if len(IdFound) == 0 {
 			// check if there is a row for this record with the ID
-			bufferMap, err = getOneRecord(params["fid"])
+			food, err := foodGetOneRecord(params["fid"])
 			if err != nil {
 				http.Error(w, "404 - Food id not found", http.StatusNotFound)
 				return
 			}
+			bufferMap["fid"] = *food
 			fmt.Printf("bufferMap : %+v", bufferMap)
-			err = json.NewEncoder(w).Encode(bufferMap) //key:value
+			err = json.NewEncoder(w).Encode(&bufferMap) //key:value
 			if err != nil {
 				fmt.Println("error marshalling")
 				http.Error(w, "Unable to marshal json", http.StatusInternalServerError)
@@ -227,9 +205,10 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 			var foodList foodListType
 			//bufferMap, err = GetPrefixedRecords(prefixID)
-			foodList.FoodMap, err = getPrefixedRecords(prefixID)
+			foodList.FoodMap, err = foodGetPrefixedRecords(prefixID)
 			if err != nil {
-				http.Error(w, "404 - Food id not found", http.StatusNotFound)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("404 - Food id not found :" + err.Error()))
 				return
 			}
 
@@ -247,14 +226,14 @@ func food(w http.ResponseWriter, r *http.Request) {
 	// Delete may have a body but not encouraged, safest not to use
 	if r.Method == "DELETE" {
 		// vakidate key for parameter key-value
-		if !validAdmin(key[0]) {
+		if !userIsAdmin(key[0]) {
 			// w.WriteHeader(http.StatusNotFound)
 			// w.Write([]byte("401 - Invalid key"))
 			http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
 			return
 		}
 
-		count, err := getRowCount(db, params["fid"])
+		count, err := foodGetRowCount(db, params["fid"])
 		if err != nil {
 			fmt.Println("Error", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -276,7 +255,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// count == 1
-		deleteRecord(db, params["fid"])
+		foodDeleteRecord(db, params["fid"])
 		w.WriteHeader(http.StatusAccepted)
 		w.Write([]byte("202 - Food item deleted: " + params["fid"]))
 	}
@@ -286,7 +265,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 		// POST is for creating new food item
 		if r.Method == "POST" { // check request method
 			// vakidate key for parameter key-value
-			if !validAdmin(key[0]) {
+			if !userIsAdmin(key[0]) {
 				// w.WriteHeader(http.StatusNotFound)
 				// w.Write([]byte("401 - Invalid key"))
 				http.Error(w, "401 - Unauthorized Access", http.StatusNotFound)
@@ -323,7 +302,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// check if there is a row for this record with the ID
-				count, err := getRowCount(db, params["fid"])
+				count, err := foodGetRowCount(db, params["fid"])
 				if err != nil {
 					fmt.Println("Error", err)
 					w.WriteHeader(http.StatusInternalServerError)
@@ -332,14 +311,14 @@ func food(w http.ResponseWriter, r *http.Request) {
 				}
 				switch {
 				case count == 0:
-					var food productType
+					var food foodType
 					_, err := updateFoodMapToStruct(&food, newFood, foodMapRules)
 					if err != nil {
 						w.WriteHeader(http.StatusBadRequest)
 						w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
 					}
 
-					err = insertRecord(db, food, params["fid"])
+					err = foodInsertRecord(db, food, params["fid"])
 					if err != nil {
 						w.WriteHeader(http.StatusBadRequest)
 						w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
@@ -372,14 +351,14 @@ func food(w http.ResponseWriter, r *http.Request) {
 		//---PUT is for creating or updating exiting food item---
 		if r.Method == "PUT" {
 			// vakidate key for parameter key-value
-			if !validAdmin(key[0]) {
+			if !userIsAdmin(key[0]) {
 				// w.WriteHeader(http.StatusNotFound)
 				// w.Write([]byte("401 - Invalid key"))
 				http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
 				return
 			}
 
-			//var newFood productType
+			//var newFood foodType
 			var newFood mapInterface
 			reqBody, err := ioutil.ReadAll(r.Body)
 			if err == nil {
@@ -410,7 +389,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// check if there is a row for this record with the ID
-				count, err := getRowCount(db, params["fid"])
+				count, err := foodGetRowCount(db, params["fid"])
 				if err != nil {
 					fmt.Println("Error", err)
 					w.WriteHeader(http.StatusInternalServerError)
@@ -419,7 +398,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 				}
 
 				fmt.Println("Count :", count)
-				fmt.Println("Product", newFood)
+				fmt.Println("New Food", newFood)
 
 				switch {
 				case count == 0:
@@ -431,7 +410,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 				case count == 1:
 					// Edit row if row exist
-					var food productType
+					var food foodType
 					_, err := updateFoodMapToStruct(&food, newFood, foodMapRules)
 					if err != nil {
 						w.WriteHeader(http.StatusBadRequest)
@@ -439,7 +418,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 					}
 
 					fmt.Println("new Food :", newFood)
-					err = editRecord(db, newFood["Id"].(string), food, params["fid"])
+					err = foodEditRecord(db, newFood["Id"].(string), food, params["fid"])
 					if err != nil {
 						w.WriteHeader(http.StatusUnprocessableEntity)
 						w.Write([]byte("422 - JSON Body Error: " + err.Error()))
@@ -465,7 +444,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 		//---PATCH is for patching selective data ---
 		if r.Method == "PATCH" {
 			// vakidate key for parameter key-value
-			if !validAdmin(key[0]) {
+			if !userIsAdmin(key[0]) {
 				// w.WriteHeader(http.StatusNotFound)
 				// w.Write([]byte("401 - Invalid key"))
 				http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
@@ -504,7 +483,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("newFood Size: %+v\n", len(newFood))
 
 				// check if there is a row for this record with the ID
-				count, err := getRowCount(db, params["fid"])
+				count, err := foodGetRowCount(db, params["fid"])
 				if err != nil {
 					fmt.Println("Error", err)
 					w.WriteHeader(http.StatusInternalServerError)
@@ -521,7 +500,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 					fmt.Printf("New Food : %+v, %+v\n", newFood, params["fid"])
 
 					// Edit row if row exist
-					err := updateRecord(db, newFood, *buildRules, params["fid"])
+					err := foodUpdateRecord(db, newFood, *buildRules, params["fid"])
 					if err != nil {
 						w.WriteHeader(http.StatusUnprocessableEntity)
 						w.Write([]byte("422 - JSON Body Error, " + err.Error()))
@@ -549,7 +528,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 // It checks for the validity of the key
 // return (number of key found, err)
 // Update p based fields of food interface, using foodFieldMap as key reference check
-func updateFoodMapToStruct(p *productType, food mapInterface, foodFieldMap mapInterface) (int, error) {
+func updateFoodMapToStruct(p *foodType, food mapInterface, foodFieldMap mapInterface) (int, error) {
 
 	var count int
 

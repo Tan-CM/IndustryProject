@@ -27,7 +27,7 @@ type userT struct {
 var userMap = map[string]userT{}
 
 // validate only admin users
-func validUser(key string) bool {
+func userIsUser(key string) bool {
 	v, ok := userMap[key]
 	if ok && v.accessType == "user" {
 		return true
@@ -36,7 +36,7 @@ func validUser(key string) bool {
 }
 
 // validate only non-admin uses
-func validAdmin(key string) bool {
+func userIsAdmin(key string) bool {
 	v, ok := userMap[key]
 	if ok && v.accessType == "admin" {
 		return true
@@ -45,7 +45,7 @@ func validAdmin(key string) bool {
 }
 
 // validate all registered user
-func validRegUser(key string) bool {
+func userIsRegistered(key string) bool {
 
 	fmt.Println("Key :", key)
 	if _, ok := userMap[key]; ok {
@@ -59,15 +59,24 @@ func verifiedUser(key string, Id string) bool {
 
 	fmt.Println("Key :", key)
 	if v, ok := userMap[key]; ok {
-		if v.email == Id {
-			return true
-		}
-		return false // failed validation
+		return v.email == Id
 	}
 	return false // non existent key
 }
 
-func GetUserRecordsInit(db *sql.DB) error {
+func userCacheInit() {
+	db, err := sql.Open("mysql", cfgUser.FormatDSN())
+	// handle error
+	if err != nil {
+		panic(err.Error()) // panic because server cannot function
+	}
+	err = userGetRecordsInit(db)
+	if err != nil {
+		panic(err.Error()) // panic because server cannot function
+	}
+}
+
+func userGetRecordsInit(db *sql.DB) error {
 
 	m2.Lock()
 	defer m2.Unlock()
@@ -109,7 +118,7 @@ func GetUserRecordsInit(db *sql.DB) error {
 }
 
 // // GetRecords gets all the rows of the current table and return as a slice of map
-func GetUsersRecords(db *sql.DB) (*usersType, error) {
+func userGetRecords(db *sql.DB) (*usersType, error) {
 	m2.Lock()
 	defer m2.Unlock()
 
@@ -157,7 +166,7 @@ func userGetOneRecord(db *sql.DB, ID string) (*userType, error) {
 	defer row.Close()
 
 	var user userType
-	// extract row by row to create slice of productType
+	// extract row by row to create slice of foodType
 	for row.Next() {
 		// map this type to the record in the table
 

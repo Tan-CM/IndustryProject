@@ -1,0 +1,20 @@
+CREATE database FoodPrefDB;
+USE FoodPrefDB;
+CREATE TABLE Prefs (
+Id VARCHAR(8) PRIMARY KEY,
+Energy FLOAT(24),
+Protein FLOAT(24),
+FatTotal FLOAT(24),
+FatSat FLOAT(24),
+Fibre FLOAT(24),
+Carb FLOAT(24),
+Cholesterol FLOAT(24),
+Sodium FLOAT(24));
+
+USE FoodPrefDB;
+
+INSERT INTO Prefs (Id, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium) VALUES ('CHN0001',1, 0.8, 1, 1, 1, 1, 1, 1.1);
+INSERT INTO Prefs (Id, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium) VALUES ('CHN0002',1, 0.9, 1, 1, 1, 1, 1, 1.2);
+INSERT INTO Prefs (Id, Energy, Protein, FatTotal, FatSat, Fibre, Carb, Cholesterol, Sodium) VALUES ('CHN0003',1, 1.1, 1, 1, 1, 1, 1, 1.3);
+
+select * from Prefs;
