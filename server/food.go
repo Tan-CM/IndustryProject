@@ -145,7 +145,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 	// user set up password that can access this db connection
 	//db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:58710)/foodDB")
 	//db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:58710)/foodDB")
-	db, err := sql.Open("mysql", cfg.FormatDSN())
+	db, err := sql.Open("mysql", cfgFood.FormatDSN())
 
 	// handle error
 	if err != nil {
@@ -164,7 +164,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		fmt.Println("userMap :", userMap)
 		// vakidate key for for registered users
-		if !userIsRegistered(key[0]) {
+		if _, ok := userIsRegistered(key[0]); !ok {
 			// w.WriteHeader(http.StatusNotFound)
 			// w.Write([]byte("401 - Invalid key"))
 			http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
@@ -183,8 +183,9 @@ func food(w http.ResponseWriter, r *http.Request) {
 		bufferMap := map[string]foodType{}
 		//var err error
 
+		// check for specific "fid" or group "fid"
 		if len(IdFound) == 0 {
-			// check if there is a row for this record with the ID
+			// check if record exist with the ID
 			food, err := foodGetOneRecord(params["fid"])
 			if err != nil {
 				http.Error(w, "404 - Food id not found", http.StatusNotFound)
@@ -232,30 +233,13 @@ func food(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
 			return
 		}
-
-		count, err := foodGetRowCount(db, params["fid"])
-		if err != nil {
-			fmt.Println("Error", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("500 - Internal Server Error"))
-			return
-		}
-		if count == 0 {
-			// w.WriteHeader(http.StatusNotFound)
-			// w.Write([]byte("404 - Food id not found"))
-			// another way to send fixed error message with http.error()
+		// check if food Id exist
+		if _, err := foodGetOneRecord(params["fid"]); err != nil {
 			http.Error(w, "404 - Food Id not found", http.StatusNotFound)
 			return
 		}
-		if count > 1 {
-			// some database error because there are more than one row with the same id
-			fmt.Println("Error - Duplicate IDs")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("500 - Internal Server Error"))
-			return
-		}
-		// count == 1
-		foodDeleteRecord(db, params["fid"])
+
+		foodDeleteRecordDB(db, params["fid"])
 		w.WriteHeader(http.StatusAccepted)
 		w.Write([]byte("202 - Food item deleted: " + params["fid"]))
 	}
@@ -301,45 +285,38 @@ func food(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				// check if there is a row for this record with the ID
-				count, err := foodGetRowCount(db, params["fid"])
-				if err != nil {
-					fmt.Println("Error", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("500 - Internal Server Error"))
-					return
-				}
-				switch {
-				case count == 0:
-					var food foodType
-					_, err := updateFoodMapToStruct(&food, newFood, foodMapRules)
-					if err != nil {
-						w.WriteHeader(http.StatusBadRequest)
-						w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
-					}
-
-					err = foodInsertRecord(db, food, params["fid"])
-					if err != nil {
-						w.WriteHeader(http.StatusBadRequest)
-						w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
-						return
-					}
-					w.WriteHeader(http.StatusCreated)
-					w.Write([]byte("201 - Food item added: " + params["fid"] + " Category: " + newFood["Category"].(string) +
-						" Name: " + newFood["Name"].(string)))
-
-					fmt.Println("Food :", newFood)
-
-				case count == 1:
+				// check if food Id exist
+				if _, err := foodGetOneRecord(params["fid"]); err == nil {
 					w.WriteHeader(http.StatusConflict) // food id key already exist
 					w.Write([]byte("409 - Duplicate food ID"))
-
-				case count > 1:
-					// some sql data error if any such error
-					fmt.Println("SQL database error")
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("500 - Internal Server Error"))
+					return
+				} else {
+					if err == errIllegalID {
+						w.WriteHeader(http.StatusBadRequest)
+						w.Write([]byte("422 - Illegal ID Error, " + err.Error()))
+						return
+					}
 				}
+
+				var food foodType
+				_, err = updateFoodMapToStruct(&food, newFood, foodMapRules)
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
+					return
+				}
+
+				err = foodInsertRecordDB(db, food, params["fid"])
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
+					return
+				}
+				w.WriteHeader(http.StatusCreated)
+				w.Write([]byte("201 - Food item added: " + params["fid"] + " Category: " + newFood["Category"].(string) +
+					" Name: " + newFood["Name"].(string)))
+
+				fmt.Println("Food :", newFood)
 
 			} else {
 				// Problem with the body from response
@@ -388,53 +365,29 @@ func food(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				// check if there is a row for this record with the ID
-				count, err := foodGetRowCount(db, params["fid"])
+				// check if food Id exist
+				if _, err := foodGetOneRecord(params["fid"]); err != nil {
+					http.Error(w, "404 - Food Id not found", http.StatusNotFound)
+					return
+				}
+				// Edit row if row exist
+				var food foodType
+				_, err = updateFoodMapToStruct(&food, newFood, foodMapRules)
 				if err != nil {
-					fmt.Println("Error", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("500 - Internal Server Error"))
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
 					return
 				}
 
-				fmt.Println("Count :", count)
-				fmt.Println("New Food", newFood)
-
-				switch {
-				case count == 0:
-					// Add row if none exist
-					// InsertRecord(db, &newFood, params["fid"])
-					// w.WriteHeader(http.StatusCreated)
-					// w.Write([]byte("201 - Food item added: " + params["fid"]))
-					http.Error(w, "404 - Food Id not found", http.StatusNotFound)
-
-				case count == 1:
-					// Edit row if row exist
-					var food foodType
-					_, err := updateFoodMapToStruct(&food, newFood, foodMapRules)
-					if err != nil {
-						w.WriteHeader(http.StatusBadRequest)
-						w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
-					}
-
-					fmt.Println("new Food :", newFood)
-					err = foodEditRecord(db, newFood["Id"].(string), food, params["fid"])
-					if err != nil {
-						w.WriteHeader(http.StatusUnprocessableEntity)
-						w.Write([]byte("422 - JSON Body Error: " + err.Error()))
-						return
-					}
-					w.WriteHeader(http.StatusAccepted)
-					// w.Write([]byte("202 - Food item Updated: " + params["fid"] +
-					// 	" Category: " + newFood.Category + " Name:" + newFood.Name))
-					w.Write([]byte("202 - Food item Updated: " + params["fid"]))
-
-				case count > 1:
-					// some database error because there are more than one row with the same id
-					fmt.Println("Error - Duplicate IDs")
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("500 - Internal Server Error"))
+				fmt.Println("new Food :", newFood)
+				err = foodEditRecordDB(db, newFood["Id"].(string), food, params["fid"])
+				if err != nil {
+					w.WriteHeader(http.StatusUnprocessableEntity)
+					w.Write([]byte("422 - JSON Body Error: " + err.Error()))
+					return
 				}
+				w.WriteHeader(http.StatusAccepted)
+				w.Write([]byte("202 - Food item Updated: " + params["fid"]))
 
 			} else {
 				w.WriteHeader(http.StatusUnprocessableEntity) // error
@@ -482,39 +435,22 @@ func food(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("newFood : %+v\n", newFood)
 				fmt.Printf("newFood Size: %+v\n", len(newFood))
 
-				// check if there is a row for this record with the ID
-				count, err := foodGetRowCount(db, params["fid"])
-				if err != nil {
-					fmt.Println("Error", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("500 - Internal Server Error"))
+				// check if food Id exist
+				if _, err = foodGetOneRecord(params["fid"]); err != nil {
+					http.Error(w, "404 - Food Id not found", http.StatusNotFound)
 					return
 				}
+				fmt.Printf("New Food : %+v, %+v\n", newFood, params["fid"])
 
-				switch {
-				case count == 0:
-					http.Error(w, "404 - Food Id not found", http.StatusNotFound)
-
-				case count == 1:
-
-					fmt.Printf("New Food : %+v, %+v\n", newFood, params["fid"])
-
-					// Edit row if row exist
-					err := foodUpdateRecord(db, newFood, *buildRules, params["fid"])
-					if err != nil {
-						w.WriteHeader(http.StatusUnprocessableEntity)
-						w.Write([]byte("422 - JSON Body Error, " + err.Error()))
-						return
-					}
-					w.WriteHeader(http.StatusAccepted)
-					w.Write([]byte("202 - Food item is Patched: " + params["fid"]))
-
-				case count > 1:
-					// some database error because there are more than one row with the same id
-					fmt.Println("Error - Duplicate IDs")
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("500 - Internal Server Error"))
+				// Edit row if row exist
+				err = foodUpdateRecordDB(db, newFood, *buildRules, params["fid"])
+				if err != nil {
+					w.WriteHeader(http.StatusUnprocessableEntity)
+					w.Write([]byte("422 - JSON Body Error, " + err.Error()))
+					return
 				}
+				w.WriteHeader(http.StatusAccepted)
+				w.Write([]byte("202 - Food item is Patched: " + params["fid"]))
 
 			} else {
 				w.WriteHeader(http.StatusUnprocessableEntity) // error

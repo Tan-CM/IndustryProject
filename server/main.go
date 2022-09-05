@@ -20,8 +20,9 @@ var urlKey string
 var hostPort string
 
 //var sqlDBConnection string
-var cfg mysql.Config     // configuration for DSN
-var cfgUser mysql.Config // configuration for DSN
+var cfgFood mysql.Config     // configuration for DSN
+var cfgDietProf mysql.Config // configuration for DSN
+var cfgUser mysql.Config     // configuration for DSN
 
 // init() initialises the system
 // Set up the environment
@@ -51,7 +52,7 @@ func init() {
 	fmt.Printf("Use http:// %s\n", hostPort)
 
 	// SQL DB Data Source Name config
-	cfg = mysql.Config{
+	cfgFood = mysql.Config{
 		User:   os.Getenv("SQL_USER"),
 		Passwd: os.Getenv("SQL_PASSWORD"),
 		Net:    "tcp",
@@ -59,6 +60,17 @@ func init() {
 		//DBName: os.Getenv("SQL_DB"),
 		DBName: "foodDB",
 	}
+
+	// SQL DB Data Source Name config
+	cfgDietProf = mysql.Config{
+		User:   os.Getenv("SQL_USER"),
+		Passwd: os.Getenv("SQL_PASSWORD"),
+		Net:    "tcp",
+		Addr:   os.Getenv("SQL_ADDR"),
+		//DBName: os.Getenv("SQL_DB"),
+		DBName: "dietProfileDB",
+	}
+
 	// SQL DB Data Source Name config
 	cfgUser = mysql.Config{
 		User:   os.Getenv("SQL_USER"),
@@ -96,7 +108,8 @@ func main() {
 	// note more than one key can be used, so mux.Vars contains the key-value pairs
 
 	// User food Preference
-	//subrouter.HandleFunc("/foodPref", foodPref).Methods("GET", "POST", "PATCH", "DELETE")
+	subrouter.HandleFunc("/dietProfile/{uid}", dietUserProfile).Methods("GET", "POST", "PATCH", "DELETE")
+	//	subrouter.HandleFunc("/dietProfile/{uid}", dietSelectUserProfile).Methods("GET", "POST", "PATCH", "DELETE")
 
 	// FoodIntake
 	// {select = {Metric, Value}}
@@ -116,4 +129,5 @@ func main() {
 func readCacheInit() {
 	userCacheInit()
 	foodCacheInit()
+	dietProfCacheInit()
 }

@@ -44,14 +44,19 @@ func userIsAdmin(key string) bool {
 	return false
 }
 
-// validate all registered user
-func userIsRegistered(key string) bool {
+// // validate all registered user
+// func userIsRegisteredx(key string) bool {
 
-	fmt.Println("Key :", key)
-	if _, ok := userMap[key]; ok {
-		return true
-	}
-	return false
+// 	fmt.Println("Key :", key)
+// 	_, ok := userMap[key]
+// 	return ok
+// }
+
+// validate all registered user, and get user data
+func userIsRegistered(key string) (userT, bool) {
+
+	v, ok := userMap[key]
+	return v, ok
 }
 
 // Check user or admin identity match with access key
@@ -70,13 +75,13 @@ func userCacheInit() {
 	if err != nil {
 		panic(err.Error()) // panic because server cannot function
 	}
-	err = userGetRecordsInit(db)
+	err = userGetRecordsInitDB(db)
 	if err != nil {
 		panic(err.Error()) // panic because server cannot function
 	}
 }
 
-func userGetRecordsInit(db *sql.DB) error {
+func userGetRecordsInitDB(db *sql.DB) error {
 
 	m2.Lock()
 	defer m2.Unlock()
@@ -118,7 +123,7 @@ func userGetRecordsInit(db *sql.DB) error {
 }
 
 // // GetRecords gets all the rows of the current table and return as a slice of map
-func userGetRecords(db *sql.DB) (*usersType, error) {
+func userGetRecordsDB(db *sql.DB) (*usersType, error) {
 	m2.Lock()
 	defer m2.Unlock()
 
@@ -156,7 +161,26 @@ func userGetRecords(db *sql.DB) (*usersType, error) {
 	return &usersData, nil
 }
 
-func userGetOneRecord(db *sql.DB, ID string) (*userType, error) {
+// GetOneRecord checks if there is a existence of a record based on the ID primary key
+// If there is a record, it returns a map of the record key:title pair
+// error = nil, there is a record
+// error = emptyRow, there is no record
+// func userGetOneRecordxx(ID string) (*userT, error) {
+
+// 	if len(ID) == 0 {
+// 		return nil, errIllegalID
+// 	}
+
+// 	// check for validity of ID
+// 	if v, ok := userMap[ID]; ok {
+// 		return &v, nil
+// 	} else {
+// 		return &v, fmt.Errorf("invalid ID (%v)", ID)
+// 	}
+
+// }
+
+func userGetOneRecordDB(db *sql.DB, ID string) (*userType, error) {
 
 	fmt.Println("ID :", ID)
 	row, err := db.Query("Select * FROM USERS where EMAIL=?", ID)
@@ -182,7 +206,7 @@ func userGetOneRecord(db *sql.DB, ID string) (*userType, error) {
 }
 
 // Returns the number of rows that match the ID
-func userGetRowCount(db *sql.DB, ID string) (int, error) {
+func userGetRowCountDB(db *sql.DB, ID string) (int, error) {
 
 	fmt.Println("ID :", ID)
 	row, err := db.Query("Select count(*) FROM USERS where EMAIL=?", ID)
@@ -205,7 +229,7 @@ func userGetRowCount(db *sql.DB, ID string) (int, error) {
 }
 
 // DeleteRecord deletes a record from the current table using the ID primary key
-func userDeleteRecord(db *sql.DB, ID string) {
+func userDeleteRecordDB(db *sql.DB, ID string) {
 	m2.Lock()
 	defer m2.Unlock()
 
@@ -214,7 +238,7 @@ func userDeleteRecord(db *sql.DB, ID string) {
 
 	//query := fmt.Sprintf("DELETE FROM foods WHERE ID='%s'", ID)
 	//row, err := db.Query(query)
-	user, err := userGetOneRecord(db, ID)
+	user, err := userGetOneRecordDB(db, ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -233,7 +257,7 @@ func userDeleteRecord(db *sql.DB, ID string) {
 }
 
 // InsertRecord instead a row record into the current table based on the primary key and title
-func userInsertRecord(db *sql.DB, p *userType) {
+func userInsertRecordDB(db *sql.DB, p *userType) {
 	m2.Lock()
 	defer m2.Unlock()
 
@@ -260,12 +284,12 @@ func userInsertRecord(db *sql.DB, p *userType) {
 	fmt.Println("Insert Successful")
 }
 
-func userUpdateRecord(db *sql.DB, user mapInterface, ID string) error {
+func userUpdateRecordDB(db *sql.DB, user mapInterface, ID string) error {
 	m2.Lock()
 	defer m2.Unlock()
 
 	// Read the old record first
-	userTemp, err := userGetOneRecord(db, ID)
+	userTemp, err := userGetOneRecordDB(db, ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -274,7 +298,7 @@ func userUpdateRecord(db *sql.DB, user mapInterface, ID string) error {
 	if v, ok := user["email"]; ok {
 		// Need to check if the new email is unique
 		if v.(string) != ID {
-			count, err := userGetRowCount(db, v.(string))
+			count, err := userGetRowCountDB(db, v.(string))
 			if err != nil {
 				panic(err.Error())
 			}
