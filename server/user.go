@@ -17,8 +17,10 @@ import (
 
 // Note JSON field needs to be exported to encoding/json to enable Encoding/Decoding, so it has to be in CAPITAL
 type userType struct {
-	Name      string `json:"name" valid:"required,type(string),stringlength(3|30),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)"`
-	Email     string `json:"email" valid:"required,type(string),email,stringlength(1|40)"`
+	Name  string `json:"name" valid:"required,type(string),stringlength(3|30),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)"`
+	Email string `json:"email" valid:"required,type(string),email,stringlength(1|40)"`
+	// Gender	  string `json:"gender" valid:"required,type(string),stringlength(4|6)"`
+	// BirthYear	 int `json:"birthyear" valid:"required,type(int),stringlength(4)"`
 	AccessKey string `json:"accesskey"`
 	Type      string `json:"type"`
 }
@@ -27,6 +29,8 @@ type userType struct {
 var userMapRules = map[string]interface{}{
 	"name":  "required,type(string),stringlength(3|30),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)",
 	"email": "required,type(string),email,stringlength(1|40)",
+	// "gender": "required,type(string),stringlength(4|6)",
+	// "birthyear": "required,type(int),stringlength(4)",
 }
 
 // Note no space on validate struct tag allowed
@@ -79,7 +83,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 	// defer the close till after the main function has finished executing
 	defer db.Close()
 
-	bufferMap, err := userGetRecords(db)
+	bufferMap, err := userGetRecordsDB(db)
 
 	if err != nil {
 		http.Error(w, "SQL DB Read Error", http.StatusInternalServerError)
@@ -139,14 +143,14 @@ func user(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(key[0])
 
 		// validate key is registered
-		if !userIsRegistered(key[0]) {
+		if _, ok := userIsRegistered(key[0]); !ok {
 			http.Error(w, "401 - Unauthorised Access Key", http.StatusNotFound)
 			return
 		}
 
 		// Need to check DB has a row for this record with the ID
 		// count returns the number of record matches
-		count, err = userGetRowCount(db, params["uid"])
+		count, err = userGetRowCountDB(db, params["uid"])
 		if err != nil {
 			fmt.Println("Error", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -182,7 +186,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Println("uid =", params["uid"])
-		user, err := userGetOneRecord(db, params["uid"])
+		user, err := userGetOneRecordDB(db, params["uid"])
 		if err != nil {
 			http.Error(w, "404 - User Id not found", http.StatusNotFound)
 			return
@@ -200,7 +204,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "DELETE" {
 		// count == 1
 		if userIsAdmin(key[0]) {
-			userDeleteRecord(db, params["uid"])
+			userDeleteRecordDB(db, params["uid"])
 			w.WriteHeader(http.StatusAccepted)
 			w.Write([]byte("202 - User deleted: " + params["uid"]))
 			fmt.Println("UserMap ", userMap)
@@ -212,7 +216,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		userDeleteRecord(db, params["uid"])
+		userDeleteRecordDB(db, params["uid"])
 		w.WriteHeader(http.StatusAccepted)
 		w.Write([]byte("202 - User deleted: " + params["uid"]))
 		fmt.Println("UserMap ", userMap)
@@ -241,7 +245,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("New User : %+v\n", newUser)
 
 				// check if there is a row for this record with the New User email ID
-				count, err := userGetRowCount(db, newUser.Email)
+				count, err := userGetRowCountDB(db, newUser.Email)
 
 				if err != nil {
 					fmt.Println("Error", err)
@@ -264,7 +268,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 
 					newUser.Type = USER
 
-					userInsertRecord(db, &newUser)
+					userInsertRecordDB(db, &newUser)
 					w.WriteHeader(http.StatusCreated)
 					w.Write([]byte("201 - New User Registered: " + newUser.Name + " Email: " + newUser.Email +
 						" Access Key: " + newUser.AccessKey))
@@ -309,7 +313,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 				if userIsAdmin(key[0]) {
 					// Edit row if row exist
 					//if err := userUpdateRecord(db, newUser, params["uid"]); err != nil {
-					if err := userUpdateRecord(db, newUserReq, params["uid"]); err != nil {
+					if err := userUpdateRecordDB(db, newUserReq, params["uid"]); err != nil {
 						if err == errDuplicateID {
 							w.WriteHeader(http.StatusUnprocessableEntity)
 							w.Write([]byte("422 - Error - New Email is used"))
@@ -333,7 +337,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				if err := userUpdateRecord(db, newUserReq, params["uid"]); err != nil {
+				if err := userUpdateRecordDB(db, newUserReq, params["uid"]); err != nil {
 					if err == errDuplicateID {
 						w.WriteHeader(http.StatusUnprocessableEntity)
 						w.Write([]byte("422 - Error - New Email is used"))

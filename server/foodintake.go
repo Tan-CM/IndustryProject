@@ -59,7 +59,8 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// vakidate key for parameter key-value
-	if !userIsRegistered(key[0]) {
+	userX, ok := userIsRegistered(key[0])
+	if !ok {
 		// w.WriteHeader(http.StatusNotFound)
 		// w.Write([]byte("401 - Invalid key"))
 		http.Error(w, "401 - Invalid key", http.StatusNotFound)
@@ -201,7 +202,64 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 		metricTotal.Sodium /= dailyLimit.Sodium
 		fmt.Printf("MetricTotal = %+v\n", metricTotal)
 		json.NewEncoder(w).Encode(&metricTotal) //key:value
-	}
 
-	//	fmt.Printf("Daily Limit = %+v", foodDailyLimit)
+	case "MYPROFILE":
+		fmt.Println("User ", userX.email)
+
+		// check gender parameter exist
+		// value, ok := vMap["gender"]
+		// if !ok {
+		// 	w.WriteHeader(http.StatusUnprocessableEntity)
+		// 	w.Write([]byte("422 - Missing Gender parameter, use &gender=male or &gender=female"))
+		// 	return
+		// }
+
+		// fmt.Printf("Gender : %+v\n", value)
+		// gender := strings.ToUpper(value[0])
+
+		// // validate gender parameter is ok
+		// dailyLimit, ok := foodDailyLimit[gender]
+		// if !ok {
+		// 	w.WriteHeader(http.StatusUnprocessableEntity)
+		// 	w.Write([]byte("422 - Wrong Gender parameter value, use &gender=male or &gender=female"))
+		// 	return
+		// }
+
+		// // compute total nutrient value
+		// for k, v := range foodlist {
+		// 	food, err := foodGetOneRecord(k) // get food data
+		// 	//food = (*bufferMap)[k]
+
+		// 	fmt.Printf("food : %#v, v: %+v\n", food, v)
+
+		// 	if err != nil {
+		// 		http.Error(w, "404 - Invalid food id in parameter", http.StatusNotFound)
+		// 	}
+
+		// 	valueTotal.Energy += food.Energy * v / food.Weight
+		// 	valueTotal.Protein += food.Protein * v / food.Weight
+		// 	valueTotal.FatTotal += food.FatTotal * v / food.Weight
+		// 	valueTotal.FatSat += food.FatSat * v / food.Weight
+		// 	valueTotal.Fibre += food.Fibre * v / food.Weight
+		// 	valueTotal.Carb += food.Carb * v / food.Weight
+		// 	valueTotal.Cholesterol += food.Cholesterol * v / food.Weight
+		// 	valueTotal.Sodium += food.Sodium * v / food.Weight
+		// }
+
+		// // Compute Metric for each value against daily limit
+		// // initialise metricTotal to zero
+		// metricTotal := valueTotal
+
+		// metricTotal.Energy /= dailyLimit.Energy
+		// metricTotal.Protein /= dailyLimit.Protein
+		// metricTotal.FatTotal /= dailyLimit.FatTotal
+		// metricTotal.FatSat /= dailyLimit.FatSat
+		// metricTotal.Fibre /= dailyLimit.Fibre
+		// metricTotal.Carb /= dailyLimit.Carb
+		// metricTotal.Cholesterol /= dailyLimit.Cholesterol
+		// metricTotal.Sodium /= dailyLimit.Sodium
+		// fmt.Printf("MetricTotal = %+v\n", metricTotal)
+		// json.NewEncoder(w).Encode(&metricTotal) //key:value
+
+	}
 }
