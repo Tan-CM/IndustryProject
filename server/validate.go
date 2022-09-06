@@ -52,6 +52,7 @@ func validateKeysValueTypes(mapX map[string]interface{}, keys map[string]string)
 	return true, nil
 }
 
+// buildVMapTemplate dynamically builds the validator map based on map interface{} and a reference map
 func buildVMapTemplate(mapX map[string]interface{}, rules map[string]interface{}) (*map[string]interface{}, error) {
 
 	// empty key on map

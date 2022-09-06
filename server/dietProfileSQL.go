@@ -96,20 +96,6 @@ func dietProfGetPrefixedRecords(prefix string) (*map[string]dietProfileType, err
 	return &selectdietProfMap, nil
 }
 
-// // validate dietProfMap Id, 2 possible outcome, illegal ID or invalidID
-// func dietProfValidateId(Id string) (*dietProfileType, error) {
-// 	if len(Id) == 0 {
-// 		return nil, errIllegalID
-// 	}
-
-// 	// check for validity of ID
-// 	if v, ok := dietProfMap[Id]; ok {
-// 		return &v, nil
-// 	} else {
-// 		return &v, fmt.Errorf("invalid ID (%v)", Id)
-// 	}
-// }
-
 // GetOneRecord checks if there is a existence of a record based on the ID primary key
 // If there is a record, it returns a map of the record key:title pair
 // error = nil, there is a record

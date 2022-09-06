@@ -53,7 +53,7 @@ var foodKeyTypeRules = map[string]string{
 }
 
 // Map form for Map validation (govalidator)
-// map is for POST, PUT and PATCH so required has to be removed
+// map is for PUT that can also change Id
 var foodMapRules = map[string]interface{}{
 	"Id":          "required,matches(^[a-zA-Z]{3}[0-9]{4}$)",
 	"Category":    "required,stringlength(3|20),matches(^[a-zA-Z]+$)",
@@ -70,7 +70,7 @@ var foodMapRules = map[string]interface{}{
 }
 
 // Map form for Map validation (govalidator)
-// map is for POST, PUT and PATCH so required has to be removed
+// map is for POST because it does not have "Id", and foodMapRules cannot be used because "Id" is a required field
 var foodNoIdMapRules = map[string]interface{}{
 	"Category":    "required,type(string),stringlength(3|20),matches(^[a-zA-Z]+$)",
 	"Name":        "required,type(string),stringlength(3|60),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)",
@@ -83,6 +83,23 @@ var foodNoIdMapRules = map[string]interface{}{
 	"Carb":        "type(float64),range(0|500)",
 	"Cholesterol": "type(float64),range(0|1000)",
 	"Sodium":      "type(float64),range(0|5000)",
+}
+
+// Map form for Map validation (govalidator)
+// map is for PATCH so required has to be removed
+var foodPatchMapRules = map[string]interface{}{
+	"Id":          "matches(^[a-zA-Z]{3}[0-9]{4}$)",
+	"Category":    "stringlength(3|20),matches(^[a-zA-Z]+$)",
+	"Name":        "stringlength(3|60),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)",
+	"Weight":      "range(0|1000)",
+	"Energy":      "range(0|1000)",
+	"Protein":     "range(0|100)", // required removed to accept zero value
+	"FatTotal":    "range(0|100)",
+	"FatSat":      "range(0|100)",
+	"Fibre":       "range(0|100)",
+	"Carb":        "range(0|500)",
+	"Cholesterol": "range(0|1000)",
+	"Sodium":      "range(0|5000)",
 }
 
 // home is the handler for "/api/v1/" resource
@@ -299,7 +316,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 				}
 
 				var food foodType
-				_, err = updateFoodMapToStruct(&food, newFood, foodMapRules)
+				_, err = updateFoodMapToStruct(&food, newFood, foodNoIdMapRules)
 				if err != nil {
 					w.WriteHeader(http.StatusBadRequest)
 					w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
@@ -417,16 +434,17 @@ func food(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// build rules dynamically base on interface{} because govalidator requires complete rules
-				buildRules, err := buildVMapTemplate(newFood, foodMapRules)
-				if err != nil {
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - Validation Build Rule Failed, " + err.Error()))
-					return
-				}
-				fmt.Printf("Template : %+v\n", buildRules)
+				// buildRules, err := buildVMapTemplate(newFood, foodMapRules)
+				// if err != nil {
+				// 	w.WriteHeader(http.StatusUnprocessableEntity)
+				// 	w.Write([]byte("422 - Validation Build Rule Failed, " + err.Error()))
+				// 	return
+				// }
+				// fmt.Printf("Template : %+v\n", buildRules)
 
 				// struct value validaion with Map interface{} values
-				if ok, err := govalidator.ValidateMap(newFood, *buildRules); !ok {
+				//if ok, err := govalidator.ValidateMap(newFood, *buildRules); !ok {
+				if ok, err := govalidator.ValidateMap(newFood, foodPatchMapRules); !ok {
 					w.WriteHeader(http.StatusBadRequest)
 					w.Write([]byte("422 - JSON Data Value Error, " + err.Error()))
 					return
@@ -443,7 +461,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("New Food : %+v, %+v\n", newFood, params["fid"])
 
 				// Edit row if row exist
-				err = foodUpdateRecordDB(db, newFood, *buildRules, params["fid"])
+				err = foodUpdateRecordDB(db, newFood, foodPatchMapRules, params["fid"])
 				if err != nil {
 					w.WriteHeader(http.StatusUnprocessableEntity)
 					w.Write([]byte("422 - JSON Body Error, " + err.Error()))

@@ -17,20 +17,20 @@ import (
 
 // Note JSON field needs to be exported to encoding/json to enable Encoding/Decoding, so it has to be in CAPITAL
 type userType struct {
-	Name  string `json:"name" valid:"required,type(string),stringlength(3|30),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)"`
-	Email string `json:"email" valid:"required,type(string),email,stringlength(1|40)"`
-	// Gender	  string `json:"gender" valid:"required,type(string),stringlength(4|6)"`
-	// BirthYear	 int `json:"birthyear" valid:"required,type(int),stringlength(4)"`
+	Name      string `json:"name" valid:"required,type(string),stringlength(3|30),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)"`
+	Email     string `json:"email" valid:"required,type(string),email,stringlength(1|40)"`
+	Gender    string `json:"gender" valid:"required,type(string),stringlength(4|6),matches(^(Female|female|Male|male))"`
+	BirthYear int    `json:"birthyear" valid:"required,type(int),range(1920|2060)"`
 	AccessKey string `json:"accesskey"`
 	Type      string `json:"type"`
 }
 
-// Map form for Map validation
+// Map form for Map validation for Patch
 var userMapRules = map[string]interface{}{
-	"name":  "required,type(string),stringlength(3|30),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)",
-	"email": "required,type(string),email,stringlength(1|40)",
-	// "gender": "required,type(string),stringlength(4|6)",
-	// "birthyear": "required,type(int),stringlength(4)",
+	"name":      "type(string),stringlength(3|30),matches(^[a-zA-Z]+(?:[ ]+[a-zA-Z]+)*$)",
+	"email":     "type(string),email,stringlength(1|40)",
+	"gender":    "type(string),stringlength(4|6),matches(^(Female|female|Male|male))",
+	"birthyear": "type(float64),range(1920|2060)",
 }
 
 // Note no space on validate struct tag allowed

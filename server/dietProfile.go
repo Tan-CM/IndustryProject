@@ -47,8 +47,21 @@ var dietProfKeyTypeRules = map[string]string{
 // Map form for Map validation (govalidator)
 // map is for POST, PUT and PATCH so required has to be removed
 var dietProfMapRules = map[string]interface{}{
-	"Energy":      "required,range(0|1000)",
+	"Energy":      "required,range(1|1000)",
 	"Protein":     "range(0|100)", // required removed to accept zero value
+	"FatTotal":    "range(0|100)",
+	"FatSat":      "range(0|100)",
+	"Fibre":       "range(0|100)",
+	"Carb":        "range(0|500)",
+	"Cholesterol": "range(0|1000)",
+	"Sodium":      "range(0|5000)",
+}
+
+// Map form for Map validation (govalidator)
+// map is for PATCH so "required" has to be removed because it is dynamic
+var dietProfPatchMapRules = map[string]interface{}{
+	"Energy":      "range(1|1000)",
+	"Protein":     "range(0|100)",
 	"FatTotal":    "range(0|100)",
 	"FatSat":      "range(0|100)",
 	"Fibre":       "range(0|100)",
@@ -420,16 +433,17 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// build rules dynamically base on interface{} because govalidator requires complete rules
-				buildRules, err := buildVMapTemplate(dietProfile, dietProfMapRules)
-				if err != nil {
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - Validation Build Rule Failed, " + err.Error()))
-					return
-				}
-				fmt.Printf("Template : %+v\n", buildRules)
+				// buildRules, err := buildVMapTemplate(dietProfile, dietProfMapRules)
+				// if err != nil {
+				// 	w.WriteHeader(http.StatusUnprocessableEntity)
+				// 	w.Write([]byte("422 - Validation Build Rule Failed, " + err.Error()))
+				// 	return
+				// }
+				// fmt.Printf("Template : %+v\n", buildRules)
 
-				// struct value validaion with Map interface{} values
-				if ok, err := govalidator.ValidateMap(dietProfile, *buildRules); !ok {
+				// // struct value validaion with Map interface{} values
+				// if ok, err := govalidator.ValidateMap(dietProfile, *buildRules); !ok {
+				if ok, err := govalidator.ValidateMap(dietProfile, dietProfPatchMapRules); !ok {
 					w.WriteHeader(http.StatusBadRequest)
 					w.Write([]byte("422 - JSON Data Value Error, " + err.Error()))
 					return
@@ -453,7 +467,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("Diet Profile : %+v, %+v\n", dietProfile, params["uid"])
 
 				// Edit row if row exist
-				err = dietProfUpdateRecord(db, dietProfile, *buildRules, params["uid"])
+				err = dietProfUpdateRecord(db, dietProfile, dietProfPatchMapRules, params["uid"])
 				if err != nil {
 					w.WriteHeader(http.StatusUnprocessableEntity)
 					w.Write([]byte("422 - JSON Body Error, " + err.Error()))

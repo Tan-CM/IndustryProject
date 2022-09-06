@@ -97,19 +97,6 @@ func foodGetPrefixedRecords(prefix string) (*map[string]foodType, error) {
 	return &selectFoodMap, nil
 }
 
-// validate foodMap Id, 2 possible outcome, illegal ID or invalidID
-// func foodValidateId(Id string) error {
-// 	if len(Id) == 0 {
-// 		return errIllegalID
-// 	}
-
-// 	if _, ok := foodMap[Id]; !ok {
-// 		fmt.Printf("invalid ID (%v)", Id)
-// 		return fmt.Errorf("invalid foodMap ID (%v)", Id)
-// 	}
-// 	return nil
-// }
-
 // GetOneRecord checks if there is a existence of a record based on the ID primary key
 // If there is a record, it returns a map of the record key:title pair
 // error = nil, there is a record
