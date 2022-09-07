@@ -226,69 +226,73 @@ func user(w http.ResponseWriter, r *http.Request) {
 	// check for json application
 	if r.Header.Get("Content-type") == "application/json" {
 		// POST is for creating new food item
-		if r.Method == "POST" && strings.ToUpper(params["uid"]) == "NEW" { // check request method
-			// read the string sent to the service
-			var newUser userType
-			reqBody, err := ioutil.ReadAll(r.Body)
-			if err == nil {
-				// parse JSON to object data structure, note newUser has either a name or email or both
-				json.Unmarshal(reqBody, &newUser)
+		if r.Method == "POST" {
+			if strings.ToUpper(params["uid"]) == "NEW" { // check request method
+				// read the string sent to the service
+				var newUser userType
+				reqBody, err := ioutil.ReadAll(r.Body)
+				if err == nil {
+					// parse JSON to object data structure, note newUser has either a name or email or both
+					json.Unmarshal(reqBody, &newUser)
 
-				// struct validaion with struct tag
-				if ok, err := govalidator.ValidateStruct(newUser); !ok {
-					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte("400 - Data Validation Failed: " + err.Error()))
-					return
-				}
-				// trims leading and trailing spaces
-				//newUser.Name = govalidator.Trim(newUser.Name, "")
+					// struct validaion with struct tag
+					if ok, err := govalidator.ValidateStruct(newUser); !ok {
+						w.WriteHeader(http.StatusBadRequest)
+						w.Write([]byte("400 - Data Validation Failed: " + err.Error()))
+						return
+					}
+					// trims leading and trailing spaces
+					//newUser.Name = govalidator.Trim(newUser.Name, "")
 
-				fmt.Printf("New User : %+v\n", newUser)
+					fmt.Printf("New User : %+v\n", newUser)
 
-				// check if there is a row for this record with the New User email ID
-				count, err := userGetRowCountDB(db, newUser.Email)
+					// check if there is a row for this record with the New User email ID
+					count, err := userGetRowCountDB(db, newUser.Email)
 
-				if err != nil {
-					fmt.Println("Error", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("500 - Internal Server Error"))
-					return
-				}
-
-				switch {
-				case count == 0:
-					newUser.AccessKey = (uuid.NewV4()).String()
-					_, ok := userMap[newUser.AccessKey]
-
-					// repeat this if the Access key is not unique
-					for ok {
-						newUser.AccessKey = (uuid.NewV4()).String()
-						_, ok = userMap[newUser.AccessKey]
-						fmt.Println("Rare case of non-unique UUID")
+					if err != nil {
+						fmt.Println("Error", err)
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte("500 - Internal Server Error"))
+						return
 					}
 
-					newUser.Type = USER
+					switch {
+					case count == 0:
+						newUser.AccessKey = (uuid.NewV4()).String()
+						_, ok := userMap[newUser.AccessKey]
 
-					userInsertRecordDB(db, &newUser)
-					w.WriteHeader(http.StatusCreated)
-					w.Write([]byte("201 - New User Registered: " + newUser.Name + " Email: " + newUser.Email +
-						" Access Key: " + newUser.AccessKey))
+						// repeat this if the Access key is not unique
+						for ok {
+							newUser.AccessKey = (uuid.NewV4()).String()
+							_, ok = userMap[newUser.AccessKey]
+							fmt.Println("Rare case of non-unique UUID")
+						}
 
-				case count == 1:
-					w.WriteHeader(http.StatusConflict) // food id key already exist
-					w.Write([]byte("409 - Email ID is already used, please use a another Email ID"))
+						newUser.Type = USER
 
-				case count > 1:
-					// some sql data error if any such error
-					fmt.Println("SQL database error")
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte("500 - Internal Server Error"))
+						userInsertRecordDB(db, &newUser)
+						w.WriteHeader(http.StatusCreated)
+						w.Write([]byte("201 - New User Registered: " + newUser.Name + " Email: " + newUser.Email +
+							" Access Key: " + newUser.AccessKey))
+
+					case count == 1:
+						w.WriteHeader(http.StatusConflict) // food id key already exist
+						w.Write([]byte("409 - Email ID is already used, please use a another Email ID"))
+
+					case count > 1:
+						// some sql data error if any such error
+						fmt.Println("SQL database error")
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte("500 - Internal Server Error"))
+					}
+
+				} else {
+					// Problem with the body from response
+					w.WriteHeader(http.StatusBadRequest) // error
+					w.Write([]byte("400 - Please supply user Information in JSON format"))
 				}
-
 			} else {
-				// Problem with the body from response
-				w.WriteHeader(http.StatusBadRequest) // error
-				w.Write([]byte("400 - Please supply user Information in JSON format"))
+				http.Error(w, "400 - Missing 'NEW' in URL", http.StatusBadRequest)
 			}
 		}
 

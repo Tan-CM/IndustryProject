@@ -100,6 +100,8 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	fmt.Println("parameter =", params)
 
+	fmt.Printf("Method : %+v\n", r.Method)
+
 	// Get does not have a body so only header
 	if r.Method == "GET" {
 		fmt.Println("Diet Profile Get ")
