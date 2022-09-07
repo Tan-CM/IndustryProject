@@ -74,16 +74,16 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 	//fmt.Printf("v :%+v", v)
 	key, ok := v["key"]
 	if !ok {
-		http.Error(w, "401 - Missing key in URL", http.StatusNotFound)
+		http.Error(w, "400 - Missing key in URL", http.StatusBadRequest)
 		return
 	}
 
 	// vakidate key for parameter key-value
 	userX, ok := userIsRegistered(key[0])
 	if !ok {
-		// w.WriteHeader(http.StatusNotFound)
-		// w.Write([]byte("401 - Invalid key"))
-		http.Error(w, "401 - Invalid key", http.StatusNotFound)
+		// w.WriteHeader(http.StatusUnauthorized)
+		// w.Write([]byte("401 - Unauthorized Access"))
+		http.Error(w, "401 - Unauthorized Access", http.StatusUnauthorized)
 		return
 	}
 
@@ -119,6 +119,7 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 
 		// ID in s[0], weight in S[1]
 		fmt.Println("S:", s)
+		// convert string to float for the values
 		if fvalue, err := strconv.ParseFloat(s[1], 32); err == nil {
 			foodlist[s[0]] = (float32)(fvalue)
 		} else {
@@ -133,8 +134,8 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 
 	// number of ID matches the number of valid ID and values
 	if count != len(foodlist) {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		w.Write([]byte("422 - Error in parameter, please supply parameter with '&Id=FoodID,weight(gram)' for every food item"))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Error in parameter, please supply with '&Id=FoodID,weight(gram)' for every food item"))
 		return
 	}
 
@@ -175,7 +176,6 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 			food, err := foodGetOneRecord(k) // get food data
 
 			//fmt.Printf("food : %#v, v: %+v\n", food, v)
-
 			if err != nil {
 				http.Error(w, "404 - Invalid food id in parameter", http.StatusNotFound)
 			}
@@ -225,8 +225,8 @@ func foodTotal(w http.ResponseWriter, r *http.Request) {
 		profile, err := dietProfGetOneRecord(userX.email)
 
 		if err != nil {
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			w.Write([]byte("422 - Error in Diet Profile ID, " + err.Error()))
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 - Error in Diet Profile ID, " + err.Error()))
 			return
 		}
 

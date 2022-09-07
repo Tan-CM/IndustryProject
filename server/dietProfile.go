@@ -17,7 +17,7 @@ import (
 
 // Note JSON field needs to be exported to encoding/json to enable Encoding/Decoding, so it has to be in CAPITAL
 type dietProfileType struct {
-	Energy      float32 `json:"energy" valid:"required,range(0|1000)"`
+	Energy      float32 `json:"energy" valid:"required,range(1|1000)"`
 	Protein     float32 `json:"protein" valid:"required,range(0|100)"`
 	FatTotal    float32 `json:"fatTotal" valid:"required,range(0|100)"`
 	FatSat      float32 `json:"fatSat" valid:"required,range(0|100)"`
@@ -77,7 +77,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 	//fmt.Printf("v :%+v", v)
 	key, ok := v["key"]
 	if !ok {
-		http.Error(w, "401 - Missing key in URL", http.StatusNotFound)
+		http.Error(w, "400 - Missing key in URL", http.StatusBadRequest)
 		return
 	}
 
@@ -104,8 +104,9 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		fmt.Println("Diet Profile Get ")
 
+		// "ALL" means list all user which is an Admin function
 		if strings.ToUpper(params["uid"]) == "ALL" {
-			// if not admin key, then user authentication is needed
+			// only admin key is allowed
 			if !userIsAdmin(key[0]) {
 				http.Error(w, "401 - Unauthorized Access", http.StatusUnauthorized)
 				return
@@ -116,7 +117,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 			dietProfileList.DietProfile, err = dietProfGetRecords()
 
 			if err != nil {
-				http.Error(w, "SQL DB Read Error", http.StatusInternalServerError)
+				http.Error(w, "500 - SQL DB Read Error", http.StatusInternalServerError)
 				return
 			}
 
@@ -128,7 +129,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 
 			if err != nil {
 				fmt.Println("error marshalling")
-				http.Error(w, "Unable to marshal json", http.StatusInternalServerError)
+				http.Error(w, "500 - Unable to marshal json", http.StatusInternalServerError)
 			}
 			return
 		}
@@ -138,6 +139,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 		IdFound := pattern.FindString(params["uid"])
 
 		fmt.Println("IdFound :", IdFound)
+		// No match found, meaning it is not a search, so specific profile (Admin or verified user) is needed
 		if len(IdFound) == 0 {
 			// if not admin key, then user authentication is needed
 			if !userIsAdmin(key[0]) && !verifiedUser(key[0], params["uid"]) {
@@ -156,10 +158,15 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 			err = json.NewEncoder(w).Encode(fp) //key:value
 			if err != nil {
 				fmt.Println("error marshalling")
-				http.Error(w, "Unable to marshal json", http.StatusInternalServerError)
+				http.Error(w, "500 - Unable to marshal json", http.StatusInternalServerError)
 			}
 			return
 		} else {
+			// only admin key is allowed for prefixed search
+			if !userIsAdmin(key[0]) {
+				http.Error(w, "401 - Unauthorized Access", http.StatusUnauthorized)
+				return
+			}
 			// remove * to get the ID prefix
 			prefixID := strings.TrimSuffix(IdFound, "*")
 			fmt.Println("PrefixID :", prefixID)
@@ -169,7 +176,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 			//bufferMap, err = GetPrefixedRecords(prefixID)
 			dietProfileList.DietProfile, err = dietProfGetPrefixedRecords(prefixID)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusNotFound)
 				w.Write([]byte("404 - Food id not found :" + err.Error()))
 				return
 			}
@@ -180,7 +187,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 			err = json.NewEncoder(w).Encode(&dietProfileList) //key:value
 			if err != nil {
 				fmt.Println("error marshalling")
-				http.Error(w, "Unable to marshal json", http.StatusInternalServerError)
+				http.Error(w, "500 - Unable to marshal json", http.StatusInternalServerError)
 			}
 			return
 		}
@@ -204,8 +211,8 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 		}
 
 		dietProfDeleteRecord(db, params["uid"])
-		w.WriteHeader(http.StatusAccepted)
-		w.Write([]byte("202 - Diet Profile deleted: "))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("200 - Diet Profile deleted: "))
 	}
 
 	// check for json application
@@ -240,8 +247,8 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 				// valid count == 1
 				switch {
 				case count == 0:
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - User Id (" + params["uid"] + ") not created, please create User before Profile"))
+					w.WriteHeader(http.StatusNotFound)
+					w.Write([]byte("404 - User Id (" + params["uid"] + ") not found, please create User before Profile"))
 					return
 
 				case count > 1:
@@ -262,15 +269,15 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 
 				// validate the JSON Num of keys-value in body are correct
 				if len(newProfile) != len(dietProfMapRules) {
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - Incompatible or Incomplete JSON Data Error"))
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("400 - Incompatible or Incomplete JSON Data Error"))
 					return
 				}
 
 				// validate the JSON keys and value type in body are correct
 				if ok, err := validateKeysValueTypes(newProfile, dietProfKeyTypeRules); !ok {
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - JSON Data Type Error, " + err.Error()))
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("400 - JSON Data Type Error, " + err.Error()))
 					return
 				}
 
@@ -278,7 +285,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 				if ok, err := govalidator.ValidateMap(newProfile, dietProfMapRules); !ok {
 					//if ok, err := govalidator.ValidateStruct(newFood); !ok {
 					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte("422 - JSON Data Value Error, " + err.Error()))
+					w.Write([]byte("400 - JSON Data Value Error, " + err.Error()))
 					return
 				}
 
@@ -290,7 +297,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 					return
 				} else {
 					if err == errIllegalID {
-						http.Error(w, "500 - Diet Profile Illegal Id", http.StatusNotFound)
+						http.Error(w, "422 - Diet Profile Illegal Id", http.StatusUnprocessableEntity)
 					}
 				}
 
@@ -298,13 +305,13 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 				_, err := updateDietProfMapToStruct(&dietProfile, newProfile, dietProfMapRules)
 				if err != nil {
 					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
+					w.Write([]byte("400 - JSON Map Structure Error, " + err.Error()))
 				}
 
 				err = dietProfInsertRecord(db, dietProfile, params["uid"])
 				if err != nil {
 					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
+					w.Write([]byte("400 - JSON Map Structure Error, " + err.Error()))
 					return
 				}
 				w.WriteHeader(http.StatusCreated)
@@ -314,8 +321,8 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 
 			} else {
 				// Problem with the body from response
-				w.WriteHeader(http.StatusUnprocessableEntity) // error
-				w.Write([]byte("422 - Please supply diet Profile Body " + "in JSON format"))
+				w.WriteHeader(http.StatusBadRequest) // error
+				w.Write([]byte("400 - Please supply diet Profile Body " + "in JSON format"))
 			}
 		}
 
@@ -323,9 +330,9 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 		// if r.Method == "PUT" {
 		// 	// vakidate key for parameter key-value
 		// 	if !userIsAdmin(key[0]) {
-		// 		// w.WriteHeader(http.StatusNotFound)
-		// 		// w.Write([]byte("401 - Invalid key"))
-		// 		http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
+		// 		// w.WriteHeader(http.StatusUnauthorized)
+		// 		// w.Write([]byte("401 - Unauthorized Access"))
+		// http.Error(w, "401 - - Unauthorized Access", http.StatusUnauthorized)
 		// 		return
 		// 	}
 
@@ -340,22 +347,22 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 
 		// 		// validate the JSON Num of keys-value in body are correct
 		// 		if len(newFood) != len(foodMapRules) {
-		// 			w.WriteHeader(http.StatusUnprocessableEntity)
-		// 			w.Write([]byte("422 - Incompatible or Incomplete JSON Data Error"))
+		// 			w.WriteHeader(http.StatusBadRequest)
+		// 			w.Write([]byte("400 - Incompatible or Incomplete JSON Data Error"))
 		// 			return
 		// 		}
 
 		// 		// validate the JSON keys and value type in body are correct
 		// 		if ok, err := validateKeysValueTypes(newFood, foodKeyTypeRules); !ok {
-		// 			w.WriteHeader(http.StatusUnprocessableEntity)
-		// 			w.Write([]byte("422 - JSON Data Type Error, " + err.Error()))
+		// 			w.WriteHeader(http.StatusBadRequest)
+		// 			w.Write([]byte("400 - JSON Data Type Error, " + err.Error()))
 		// 			return
 		// 		}
 
 		// 		// struct value validaion with Map interface{} values
 		// 		if ok, err := govalidator.ValidateMap(newFood, foodMapRules); !ok {
 		// 			w.WriteHeader(http.StatusBadRequest)
-		// 			w.Write([]byte("422 - JSON Data Value Error, " + err.Error()))
+		// 			w.Write([]byte("400 - JSON Data Value Error, " + err.Error()))
 		// 			return
 		// 		}
 
@@ -385,31 +392,31 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 		// 			_, err := updateFoodMapToStruct(&food, newFood, foodMapRules)
 		// 			if err != nil {
 		// 				w.WriteHeader(http.StatusBadRequest)
-		// 				w.Write([]byte("422 - JSON Map Structure Error, " + err.Error()))
+		// 				w.Write([]byte("400 - JSON Map Structure Error, " + err.Error()))
 		// 			}
 
 		// 			fmt.Println("new Food :", newFood)
 		// 			err = foodEditRecord(db, newFood["Id"].(string), food, params["fid"])
 		// 			if err != nil {
 		// 				w.WriteHeader(http.StatusUnprocessableEntity)
-		// 				w.Write([]byte("422 - JSON Body Error: " + err.Error()))
+		// 				w.Write([]byte("422 - Error Id : " + err.Error()))
 		// 				return
 		// 			}
-		// 			w.WriteHeader(http.StatusAccepted)
-		// 			// w.Write([]byte("202 - Food item Updated: " + params["fid"] +
+		// 			w.WriteHeader(http.StatusOK)
+		// 			// w.Write([]byte("200 - Food item Updated: " + params["fid"] +
 		// 			// 	" Category: " + newFood.Category + " Name:" + newFood.Name))
-		// 			w.Write([]byte("202 - Food item Updated: " + params["fid"]))
+		// 			w.Write([]byte("200 - Food item Updated: " + params["fid"]))
 
 		// 		case count > 1:
 		// 			// some database error because there are more than one row with the same id
 		// 			fmt.Println("Error - Duplicate IDs")
 		// 			w.WriteHeader(http.StatusInternalServerError)
-		// 			w.Write([]byte("500 - Internal Server Error"))
+		// 			w.Write([]byte("409 - Internal Server Error"))
 		// 		}
 
 		// 	} else {
-		// 		w.WriteHeader(http.StatusUnprocessableEntity) // error
-		// 		w.Write([]byte("422 - Please supply " + "food information " + "in JSON format"))
+		// 		w.WriteHeader(http.StatusBadRequest) // error
+		// 		w.Write([]byte("400 - Please supply " + "food information " + "in JSON format"))
 		// 	}
 		// }
 		//---PATCH is for patching selective data ---
@@ -427,16 +434,16 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 				json.Unmarshal(reqBody, &dietProfile)
 				// validate the JSON keys and value type in body are correct
 				if ok, err := validateKeysValueTypes(dietProfile, dietProfKeyTypeRules); !ok {
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - JSON Data Type Error, " + err.Error()))
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("400 - JSON Data Type Error, " + err.Error()))
 					return
 				}
 
 				// build rules dynamically base on interface{} because govalidator requires complete rules
 				// buildRules, err := buildVMapTemplate(dietProfile, dietProfMapRules)
 				// if err != nil {
-				// 	w.WriteHeader(http.StatusUnprocessableEntity)
-				// 	w.Write([]byte("422 - Validation Build Rule Failed, " + err.Error()))
+				// 	w.WriteHeader(http.StatusBadRequest)
+				// 	w.Write([]byte("400 - Validation Build Rule Failed, " + err.Error()))
 				// 	return
 				// }
 				// fmt.Printf("Template : %+v\n", buildRules)
@@ -445,7 +452,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 				// if ok, err := govalidator.ValidateMap(dietProfile, *buildRules); !ok {
 				if ok, err := govalidator.ValidateMap(dietProfile, dietProfPatchMapRules); !ok {
 					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte("422 - JSON Data Value Error, " + err.Error()))
+					w.Write([]byte("400 - JSON Data Value Error, " + err.Error()))
 					return
 				}
 
@@ -456,7 +463,7 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 				_, err = dietProfGetOneRecord(params["uid"])
 				if err != nil {
 					if err == errIllegalID {
-						http.Error(w, "500 - Diet Profile Illegal Id", http.StatusNotFound)
+						http.Error(w, "422 - Diet Profile Illegal Id", http.StatusUnprocessableEntity)
 						return
 					}
 					w.WriteHeader(http.StatusUnprocessableEntity)
@@ -469,16 +476,16 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 				// Edit row if row exist
 				err = dietProfUpdateRecord(db, dietProfile, dietProfPatchMapRules, params["uid"])
 				if err != nil {
-					w.WriteHeader(http.StatusUnprocessableEntity)
-					w.Write([]byte("422 - JSON Body Error, " + err.Error()))
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("400 - JSON Body Error, " + err.Error()))
 					return
 				}
-				w.WriteHeader(http.StatusAccepted)
-				w.Write([]byte("202 - Diet Profile item is Patched: " + params["uid"]))
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("200 - Diet Profile item is Patched: " + params["uid"]))
 
 			} else {
-				w.WriteHeader(http.StatusUnprocessableEntity) // error
-				w.Write([]byte("422 - Please supply diet Profile Body " + "in JSON format"))
+				w.WriteHeader(http.StatusBadRequest) // error
+				w.Write([]byte("400 - Please supply diet Profile Body " + "in JSON format"))
 			}
 		}
 	}

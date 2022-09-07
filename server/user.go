@@ -58,15 +58,15 @@ func users(w http.ResponseWriter, r *http.Request) {
 	//fmt.Printf("v :%+v", v)
 	key, ok := v["key"]
 	if !ok {
-		http.Error(w, "401 - Missing key in URL", http.StatusNotFound)
+		http.Error(w, "400 - Missing key in URL", http.StatusBadRequest)
 		return
 	}
 
 	// vakidate key for parameter key-value
 	if !userIsAdmin(key[0]) {
-		// w.WriteHeader(http.StatusNotFound)
-		// w.Write([]byte("401 - Invalid key"))
-		http.Error(w, "401 - - Unauthorized Access", http.StatusNotFound)
+		// w.WriteHeader(http.StatusUnauthorized)
+		// w.Write([]byte("401 - Unauthorized Access"))
+		http.Error(w, "401 - Unauthorized Access", http.StatusUnauthorized)
 		return
 	}
 
@@ -136,7 +136,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 		//fmt.Printf("v :%+v", v)
 		key, ok = v["key"]
 		if !ok {
-			http.Error(w, "401 - Missing key in URL", http.StatusNotFound)
+			http.Error(w, "400 - Missing key in URL", http.StatusBadRequest)
 			return
 		}
 
@@ -144,7 +144,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 
 		// validate key is registered
 		if _, ok := userIsRegistered(key[0]); !ok {
-			http.Error(w, "401 - Unauthorised Access Key", http.StatusNotFound)
+			http.Error(w, "401 - Unauthorised Access Key", http.StatusUnauthorized)
 			return
 		}
 
@@ -196,7 +196,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 		err = json.NewEncoder(w).Encode(user) //key:value
 		if err != nil {
 			fmt.Println("error marshalling")
-			http.Error(w, "Unable to marshal json", http.StatusInternalServerError)
+			http.Error(w, "500 - Unable to marshal json", http.StatusInternalServerError)
 		}
 	}
 
@@ -211,14 +211,15 @@ func user(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// validate key with user id
 		if !verifiedUser(key[0], params["uid"]) {
-			http.Error(w, "401 - Mismatched Access key with Id", http.StatusNotFound)
+			http.Error(w, "401 - Unauthorized Access", http.StatusUnauthorized)
 			return
 		}
 
 		userDeleteRecordDB(db, params["uid"])
-		w.WriteHeader(http.StatusAccepted)
-		w.Write([]byte("202 - User deleted: " + params["uid"]))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("200 - User deleted: " + params["uid"]))
 		fmt.Println("UserMap ", userMap)
 	}
 
@@ -236,7 +237,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 				// struct validaion with struct tag
 				if ok, err := govalidator.ValidateStruct(newUser); !ok {
 					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte("422 - Data Validation Failed: " + err.Error()))
+					w.Write([]byte("400 - Data Validation Failed: " + err.Error()))
 					return
 				}
 				// trims leading and trailing spaces
@@ -286,8 +287,8 @@ func user(w http.ResponseWriter, r *http.Request) {
 
 			} else {
 				// Problem with the body from response
-				w.WriteHeader(http.StatusUnprocessableEntity) // error
-				w.Write([]byte("422 - Please user information in JSON format"))
+				w.WriteHeader(http.StatusBadRequest) // error
+				w.Write([]byte("400 - Please supply user Information in JSON format"))
 			}
 		}
 
@@ -306,7 +307,7 @@ func user(w http.ResponseWriter, r *http.Request) {
 				// struct validaion with struct tag
 				if ok, err := govalidator.ValidateMap(newUserReq, userMapRules); !ok {
 					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte("422 - Data Validation Failed: " + err.Error()))
+					w.Write([]byte("400 - Data Validation Failed: " + err.Error()))
 					return
 				}
 
@@ -315,8 +316,8 @@ func user(w http.ResponseWriter, r *http.Request) {
 					//if err := userUpdateRecord(db, newUser, params["uid"]); err != nil {
 					if err := userUpdateRecordDB(db, newUserReq, params["uid"]); err != nil {
 						if err == errDuplicateID {
-							w.WriteHeader(http.StatusUnprocessableEntity)
-							w.Write([]byte("422 - Error - New Email is used"))
+							w.WriteHeader(http.StatusConflict)
+							w.Write([]byte("409 - Error - New Email is used"))
 							return
 						}
 						fmt.Println("Error", err)
@@ -324,23 +325,24 @@ func user(w http.ResponseWriter, r *http.Request) {
 						w.Write([]byte("500 - Internal Server Error"))
 						return
 					}
-					w.WriteHeader(http.StatusAccepted)
-					w.Write([]byte("202 - User item Patched: " + params["uid"]))
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte("200 - User item Patched: " + params["uid"]))
 					return
 				}
 
 				fmt.Println("key :", key[0])
 				fmt.Println("user ID :", params["uid"])
 
+				// check if the user to be patched is a valid user
 				if !verifiedUser(key[0], params["uid"]) {
-					http.Error(w, "401 - Mismatched Access key with Id??", http.StatusNotFound)
+					http.Error(w, "401 - Unauthorized Access", http.StatusUnauthorized)
 					return
 				}
 
 				if err := userUpdateRecordDB(db, newUserReq, params["uid"]); err != nil {
 					if err == errDuplicateID {
-						w.WriteHeader(http.StatusUnprocessableEntity)
-						w.Write([]byte("422 - Error - New Email is used"))
+						w.WriteHeader(http.StatusConflict)
+						w.Write([]byte("409 - Error - New Email is used"))
 						return
 					}
 					fmt.Println("Error", err)
@@ -348,13 +350,13 @@ func user(w http.ResponseWriter, r *http.Request) {
 					w.Write([]byte("500 - Internal Server Error"))
 					return
 				}
-				w.WriteHeader(http.StatusAccepted)
-				w.Write([]byte("202 - User item Patch: " + params["uid"]))
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("200 - User item Patch: " + params["uid"]))
 
 			} else {
 				// Problem with the body from response
-				w.WriteHeader(http.StatusUnprocessableEntity) // error
-				w.Write([]byte("422 - Please user information in JSON format"))
+				w.WriteHeader(http.StatusBadRequest) // error
+				w.Write([]byte("400 - Please supply user Information in JSON format"))
 			}
 		}
 	}
