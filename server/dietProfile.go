@@ -124,7 +124,6 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 			}
 
 			dietProfileList.Count = len(*dietProfileList.DietProfile)
-			//fmt.Printf("BufferMap :%+v\n", *bufferMap)
 
 			// returns all the foods in JSON and send to IO Response writer
 			err = json.NewEncoder(w).Encode(dietProfileList)
@@ -136,13 +135,16 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// find string with {PrefixId*} for group ID search, using backtick `*` for raw character instead of \\*
-		pattern := regexp.MustCompile("[a-zA-Z0-9]+\\*")
-		IdFound := pattern.FindString(params["uid"])
+		// find string with Prefix and Postfix in Regex capture group
+		pattern := regexp.MustCompile("([a-zA-Z0-9@.]*)\\*([a-zA-Z0-9@.]*)")
+		strFound := pattern.FindStringSubmatch(params["uid"])
+		// fmt.Println("strFound[0] :", strFound[0])
+		// fmt.Println("strFound[1] :", strFound[1])
+		// fmt.Println("strFound[2] :", strFound[2])
 
-		fmt.Println("IdFound :", IdFound)
-		// No match found, meaning it is not a search, so specific profile (Admin or verified user) is needed
-		if len(IdFound) == 0 {
+		fmt.Printf("strFound : %+v\n", strFound)
+		// no match, so check for specific "uid"
+		if strFound == nil {
 			// if not admin key, then user authentication is needed
 			if !userIsAdmin(key[0]) && !verifiedUser(key[0], params["uid"]) {
 				http.Error(w, "401 - Unauthorized Access", http.StatusUnauthorized)
@@ -169,17 +171,12 @@ func dietUserProfile(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "401 - Unauthorized Access", http.StatusUnauthorized)
 				return
 			}
-			// remove * to get the ID prefix
-			prefixID := strings.TrimSuffix(IdFound, "*")
-			fmt.Println("PrefixID :", prefixID)
 
 			var dietProfileList dietProfileListType
-
-			//bufferMap, err = GetPrefixedRecords(prefixID)
-			dietProfileList.DietProfile, err = dietProfGetPrefixedRecords(prefixID)
+			dietProfileList.DietProfile, err = dietProfGetPrefixPostfixRecords(strFound[1], strFound[2])
 			if err != nil {
 				w.WriteHeader(http.StatusNotFound)
-				w.Write([]byte("404 - Food id not found :" + err.Error()))
+				w.Write([]byte("404 - User id not found :" + err.Error()))
 				return
 			}
 

@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
-	"strings"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
@@ -191,24 +190,25 @@ func food(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("fid =", params["fid"])
 
 		// find string with {PrefixId*} for group ID search, using backtick `*` for raw character instead of \\*
-		pattern := regexp.MustCompile("[a-zA-Z]+[0-9]*\\*")
-		IdFound := pattern.FindString(params["fid"])
+		pattern := regexp.MustCompile("([a-zA-Z0-9]*)\\*([a-zA-Z0-9]*)")
+		// match string in StrFound[0], capture 1 group is in prefix = StrFound[1], capture 2 group is in postfix = StrFound[2]
+		strFound := pattern.FindStringSubmatch(params["fid"])
 
-		fmt.Printf("a: %+v", IdFound)
+		fmt.Printf("strFound: %+v", strFound)
 
 		// if Id pattern is not found, then use the ID directly
 		bufferMap := map[string]foodType{}
 		//var err error
 
-		// check for specific "fid" or group "fid"
-		if len(IdFound) == 0 {
+		// no match, so check for specific "fid"
+		if strFound == nil {
 			// check if record exist with the ID
 			food, err := foodGetOneRecord(params["fid"])
 			if err != nil {
 				http.Error(w, "404 - Food Id not found", http.StatusNotFound)
 				return
 			}
-			bufferMap["fid"] = *food
+			bufferMap[params["fid"]] = *food
 			fmt.Printf("bufferMap : %+v", bufferMap)
 			err = json.NewEncoder(w).Encode(&bufferMap) //key:value
 			if err != nil {
@@ -217,13 +217,8 @@ func food(w http.ResponseWriter, r *http.Request) {
 			}
 
 		} else {
-			// remove * to get the ID prefix
-			prefixID := strings.TrimSuffix(IdFound, "*")
-			fmt.Println("PrefixID :", prefixID)
-
 			var foodList foodListType
-			//bufferMap, err = GetPrefixedRecords(prefixID)
-			foodList.FoodMap, err = foodGetPrefixedRecords(prefixID)
+			foodList.FoodMap, err = foodfGetPrefixPostfixRecords(strFound[1], strFound[2])
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("404 - Food Id not found :" + err.Error()))

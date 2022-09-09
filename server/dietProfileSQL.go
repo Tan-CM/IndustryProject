@@ -96,6 +96,54 @@ func dietProfGetPrefixedRecords(prefix string) (*map[string]dietProfileType, err
 	return &selectdietProfMap, nil
 }
 
+// GetRecords gets all the rows of the current table and return as a slice of map
+func dietProfGetPrefixPostfixRecords(prefix string, postfix string) (*map[string]dietProfileType, error) {
+
+	// create a food map to be populated to match search
+	selectdietProfMap := map[string]dietProfileType{}
+
+	// If prefix and postfix are empty return complete list
+	if prefix == "" && postfix == "" {
+		return &dietProfMap, nil
+	}
+
+	// populate value that has prefix
+	if prefix == "" {
+		for k, v := range dietProfMap {
+			selectdietProfMap[k] = v
+		}
+	} else {
+		for k, v := range dietProfMap {
+			if strings.HasPrefix(k, prefix) {
+				selectdietProfMap[k] = v
+			}
+		}
+
+		if len(selectdietProfMap) == 0 {
+			return &selectdietProfMap, fmt.Errorf("invalid prefix ID (%v)", prefix)
+		}
+	}
+
+	// remove key, value pair that that not have postfix key
+	if postfix == "" {
+		return &selectdietProfMap, nil
+	} else {
+		for k, _ := range selectdietProfMap {
+			if !strings.HasSuffix(k, postfix) {
+				delete(selectdietProfMap, k)
+			}
+		}
+
+		if len(selectdietProfMap) == 0 {
+			return &selectdietProfMap, fmt.Errorf("invalid postfix ID (%v)", postfix)
+		}
+	}
+
+	// fmt.Printf("selectdietProfMap : %+v\n", selectdietProfMap)
+
+	return &selectdietProfMap, nil
+}
+
 // GetOneRecord checks if there is a existence of a record based on the ID primary key
 // If there is a record, it returns a map of the record key:title pair
 // error = nil, there is a record
