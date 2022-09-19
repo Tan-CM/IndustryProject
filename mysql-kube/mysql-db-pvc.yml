@@ -1,0 +1,15 @@
+#Persistent Volume Claim - PVC is a request for storage by a user. 
+#Similar to a pod. Pods consume node resources and PVCs consume PV resources
+apiVersion: v1
+kind: PersistentVolumeClaim             # Create a PersistentVolumeClaim to request a PersistentVolume storage
+metadata:                               # Claim name and labels
+  name: mysql-pv-claim
+  labels:
+    app: fullstack-mysql
+spec:                                   # Access mode and resource limits
+  storageClassName: manual              # Request a certain storage class
+  accessModes:
+    - ReadWriteMany                     # ReadWriteMany means the volume can be mounted as read-write by many Nodes
+  resources:
+    requests:
+      storage: 5Gi

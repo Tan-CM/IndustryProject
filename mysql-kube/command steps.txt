@@ -1,0 +1,7 @@
+#command steps
+
+kubectl create -f mysql-secret.yml
+kubectl apply -f mysql-db-pv.yml
+kubectl apply -f mysql-db-pvc.yml
+kubectl apply -f mysql-db-deployment.yml
+kubectl apply -f mysql-db-service.yml

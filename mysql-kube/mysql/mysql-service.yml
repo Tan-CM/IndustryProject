@@ -1,0 +1,11 @@
+#Service - An abstract way to expose an application running on a set of Pods as a network service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: mysql
+  clusterIP: None
