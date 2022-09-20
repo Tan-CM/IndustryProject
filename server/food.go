@@ -189,7 +189,7 @@ func food(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println("fid =", params["fid"])
 
-		// find string with {PrefixId*} for group ID search, using backtick `*` for raw character instead of \\*
+		// find string with Prefix and Postfix in Regex capture group
 		pattern := regexp.MustCompile("([a-zA-Z0-9]*)\\*([a-zA-Z0-9]*)")
 		// match string in StrFound[0], capture 1 group is in prefix = StrFound[1], capture 2 group is in postfix = StrFound[2]
 		strFound := pattern.FindStringSubmatch(params["fid"])

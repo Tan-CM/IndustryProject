@@ -1,5 +1,5 @@
-CREATE database DietProfileDB;
-USE DietProfileDB;
+CREATE database dietProfileDB;
+USE dietProfileDB;
 
 CREATE TABLE Profile (
 Id VARCHAR(40) PRIMARY KEY,

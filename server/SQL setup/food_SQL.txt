@@ -1,6 +1,6 @@
 CREATE database foodDB;
 USE foodDB;
-CREATE TABLE foods (
+CREATE TABLE Foods (
 Id VARCHAR(8) PRIMARY KEY,
 Category VARCHAR(20),
 Name VARCHAR(60),
@@ -9,7 +9,7 @@ Energy FLOAT(24),
 Protein FLOAT(24),
 FatTotal FLOAT(24),
 FatSat FLOAT(24),
-Fibre FLOAT(24)
+Fibre FLOAT(24),
 Carb FLOAT(24),
 Cholesterol FLOAT(24),
 Sodium FLOAT(24));

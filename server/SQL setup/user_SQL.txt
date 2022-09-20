@@ -5,7 +5,7 @@ Email VARCHAR(40) PRIMARY KEY,
 Name VARCHAR(30),
 Gender VARCHAR(6),
 BirthYear Integer,
-AccessKey VARCHAR (40)
+AccessKey VARCHAR (40),
 Type ENUM('admin', 'user')
 );
 
@@ -13,7 +13,7 @@ USE userDB;
 
 -- create admin and users
 -- ID: 1, Username: admin1, Password: admin123
-INSERT INTO users (Email, Name, Gender, BirthYear, AccessKey, Type)
+INSERT INTO USERS (Email, Name, Gender, BirthYear, AccessKey, Type)
 VALUES ('tanchorming@gmail.com','Tan Chor Ming','MALE',1958,'2c78afaf-97da-4816-bbee-9ad239abb296','admin');
 
 

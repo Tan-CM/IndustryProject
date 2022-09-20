@@ -170,7 +170,7 @@ func foodGetOneRecord(ID string) (*foodType, error) {
 // error = emptyRow, there is no record
 func foodGetOneRecordDB(db *sql.DB, ID string) (*foodType, error) {
 
-	row, err := db.Query("Select * FROM foods where ID=?", ID)
+	row, err := db.Query("Select * FROM Foods where ID=?", ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -194,7 +194,7 @@ func foodGetOneRecordDB(db *sql.DB, ID string) (*foodType, error) {
 // Returns the number of rows that match the ID
 func foodGetRowCountDB(db *sql.DB, ID string) (int, error) {
 
-	row, err := db.Query("Select count(*) FROM foods where ID=?", ID)
+	row, err := db.Query("Select count(*) FROM Foods where ID=?", ID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -217,7 +217,7 @@ func foodDeleteRecordDB(db *sql.DB, ID string) {
 	m1.Lock()
 	defer m1.Unlock()
 
-	row, err := db.Query("DELETE FROM foods WHERE ID=?", ID)
+	row, err := db.Query("DELETE FROM Foods WHERE ID=?", ID)
 
 	if err != nil {
 		panic(err.Error())
@@ -254,7 +254,7 @@ func foodEditRecordDB(db *sql.DB, newID string, f foodType, oldID string) error 
 		return fmt.Errorf("invalid Old ID (%v)", oldID)
 	}
 
-	row, err := db.Query("UPDATE foods SET ID=?, Category=?, Name=?, Weight=?, Energy=?,Protein=?, FatTotal=?, FatSat=?, Fibre=?, Carb=?, Cholesterol=?, Sodium=? WHERE Id=?",
+	row, err := db.Query("UPDATE Foods SET ID=?, Category=?, Name=?, Weight=?, Energy=?,Protein=?, FatTotal=?, FatSat=?, Fibre=?, Carb=?, Cholesterol=?, Sodium=? WHERE Id=?",
 		newID, f.Category, f.Name, f.Weight, f.Energy, f.Protein, f.FatTotal, f.FatSat, f.Fibre, f.Carb, f.Cholesterol, f.Sodium, oldID)
 
 	if err != nil {
@@ -278,7 +278,7 @@ func foodInsertRecordDB(db *sql.DB, fd foodType, ID string) error {
 	m1.Lock()
 	defer m1.Unlock()
 
-	row, err := db.Query("INSERT INTO foods VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+	row, err := db.Query("INSERT INTO Foods VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		ID, fd.Category, fd.Name, fd.Weight, fd.Energy, fd.Protein, fd.FatTotal, fd.FatSat,
 		fd.Fibre, fd.Carb, fd.Cholesterol, fd.Sodium)
 	if err != nil {
@@ -334,7 +334,7 @@ func foodUpdateRecordDB(db *sql.DB, food mapInterface, keyRules mapInterface, ol
 
 	fmt.Printf("FoodTemp :%+v\n", *foodTemp)
 
-	row, err = db.Query("Update FOODS SET Id=?, Category=?, Name=?, Weight=?, Energy=?, Protein=?, FatTotal=?, FatSat=?, Fibre=?, Carb=?, Cholesterol=?, Sodium=?  where ID=?",
+	row, err = db.Query("Update Foods SET Id=?, Category=?, Name=?, Weight=?, Energy=?, Protein=?, FatTotal=?, FatSat=?, Fibre=?, Carb=?, Cholesterol=?, Sodium=?  where ID=?",
 		newId, (*foodTemp).Category, (*foodTemp).Name, (*foodTemp).Weight, (*foodTemp).Energy, (*foodTemp).Protein, (*foodTemp).FatTotal, (*foodTemp).FatSat, (*foodTemp).Fibre,
 		(*foodTemp).Carb, (*foodTemp).Cholesterol, (*foodTemp).Sodium, oldID)
 	if err != nil {

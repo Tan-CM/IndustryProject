@@ -1,18 +1,8 @@
 CREATE database foodDB;
 USE foodDB;
-CREATE TABLE foods (
-Id VARCHAR(8) PRIMARY KEY,
-Group VARCHAR(20),
-Name VARCHAR(60),
-Weight FLOAT(24),
-Energy FLOAT(24),
-Protein FLOAT(24),
-FatTotal FLOAT(24),
-FatSat FLOAT(24),
-Fibre FLOAT(24)
-Carb FLOAT(24),
-Cholesterol FLOAT(24),
-Sodium FLOAT(24));
+CREATE TABLE Foods (Id VARCHAR(8), PRIMARY KEY Group VARCHAR(20),Name VARCHAR(60),Weight FLOAT(24),
+Energy FLOAT(24),Protein FLOAT(24),FatTotal FLOAT(24),FatSat FLOAT(24),
+Fibre FLOAT(24),Carb FLOAT(24),Cholesterol FLOAT(24),Sodium FLOAT(24));
 
 USE FoodDB;
 

@@ -57,8 +57,8 @@ func init() {
 		Passwd: os.Getenv("SQL_PASSWORD"),
 		Net:    "tcp",
 		Addr:   os.Getenv("SQL_ADDR"),
-		//DBName: os.Getenv("SQL_DB"),
-		DBName: "foodDB",
+		DBName: os.Getenv("SQL_foodDB"),
+		//DBName: "foodDB",
 	}
 
 	// SQL DB Data Source Name config
@@ -67,8 +67,8 @@ func init() {
 		Passwd: os.Getenv("SQL_PASSWORD"),
 		Net:    "tcp",
 		Addr:   os.Getenv("SQL_ADDR"),
-		//DBName: os.Getenv("SQL_DB"),
-		DBName: "dietProfileDB",
+		DBName: os.Getenv("SQL_dietProfileDB"),
+		//DBName: "dietProfileDB",
 	}
 
 	// SQL DB Data Source Name config
@@ -77,8 +77,8 @@ func init() {
 		Passwd: os.Getenv("SQL_PASSWORD"),
 		Net:    "tcp",
 		Addr:   os.Getenv("SQL_ADDR"),
-		//DBName: os.Getenv("SQL_DB"),
-		DBName: "userDB",
+		DBName: os.Getenv("SQL_userDB"),
+		//DBName: "userDB",
 	}
 
 	//	govalidator.SetFieldsRequiredByDefault(true)
