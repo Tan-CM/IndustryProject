@@ -1,0 +1,16 @@
+# build docker image from Dockerfile
+# -t or tag is tagging
+# . specifies all files in the local directory get tar and sent to the Docker daemon
+# path . specifies the context to find the file for the build
+# Note with containers, Application Host IP has to be set to 0.0.0.0 to accept any IP from exposed port
+# Using host IP as 127.0.0.1 will not work with containserised application
+docker build -t food-go-app .
+
+#run docker image
+docker run -it -p 5000:5000 food-go-app
+
+# multistage build and run
+docker build -t food-go-app2:multistage -f Dockerfile.multistage .
+
+docker run -it -p 5000:5000 food-go-app2:multistage
+
