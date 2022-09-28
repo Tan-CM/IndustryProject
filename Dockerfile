@@ -21,9 +21,13 @@ COPY /server/*.go .
 
 # build binary in /server
 RUN go build -o foodserver .
-
-#copy the env file into image
 WORKDIR /config
+#copy the env file into container directory /config, copy will create the directory if not already there
+# Note on COPY <src> <dst>
+#If <dst> not starts with / then it is considered as absolute path. 
+#If <dst> starts with / then it is considered as relative path to the work directory. 
+#If <dst> ends with / the it is considered as directory. 
+#If <dst> does not ends with / the it is considered as file. A file without any extension will be created. 
 COPY /config/* .
 
 # Export necessary port

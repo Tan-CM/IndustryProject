@@ -33,10 +33,13 @@ COPY --from=builder /build/foodserver /dist/foodserver
 
 # copy .env file
 # WORKDIR will create directory in container if not already there
-# in this case, /config has to be define in container as the current directory, 
-# because host also has /config directory name
-WORKDIR /config
-COPY /config/* .
+#WORKDIR /config
+# Note on COPY <src> <dst>
+#If <dst> not starts with / then it is considered as absolute path. 
+#If <dst> starts with / then it is considered as relative path to the work directory. 
+#If <dst> ends with / the it is considered as directory. 
+#If <dst> does not ends with / the it is considered as file. A file without any extension will be created. 
+COPY /config/* config/
 
 # Expose necessary port
 EXPOSE 5000
