@@ -7,11 +7,12 @@ FROM golang:1.18.6-alpine3.16
 #RUN mkdir /dist
 #WORKDIR /dist
 
-# create sub directory
-RUN mkdir /build
-RUN mkdir /config
+# create directories in container, can use -p if there are sub directories
+#RUN mkdir /{build,config}
 
 # copy all files to dependencies and go files /server
+# WORKDIR defines the container directory, copy copies from host to container
+# Directory is created if it is not already there
 WORKDIR /build
 COPY /server/go.mod .
 COPY /server/go.sum .

@@ -5,9 +5,10 @@
 FROM golang:1.18.6-alpine3.16 AS builder
 
 # create build folder
-RUN mkdir /build
+#RUN mkdir /build
 
 # copy all files to dependencies and go files /server
+# WORKDIR will create directory in container if not already there
 WORKDIR /build
 COPY /server/go.mod .
 COPY /server/go.sum .
@@ -20,17 +21,20 @@ COPY /server/*.go .
 RUN CGO_ENABLED=0 go build -o foodserver .
 
 # Stage 2
-# create deployment folder and sub folders
-RUN mkdir /dist
-RUN mkdir /config
+# create deployment folders, can use -p if there a sub folders
+#RUN mkdir /{dist, config}
 
 # Start from root
 FROM scratch
 
 # copy binary from stage 1 builddocker 
+# COPY will create directory in container if not already there
 COPY --from=builder /build/foodserver /dist/foodserver
 
 # copy .env file
+# WORKDIR will create directory in container if not already there
+# in this case, /config has to be define in container as the current directory, 
+# because host also has /config directory name
 WORKDIR /config
 COPY /config/* .
 
